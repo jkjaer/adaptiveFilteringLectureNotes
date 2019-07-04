@@ -1,0 +1,35 @@
+\begin{tikzpicture}
+  %axes
+  \begin{scope}[->,>=latex]
+    \draw (-1,0) -- (6,0) node[below] {$x_1$};
+    \draw (0,-0.5) -- (0,4) node[left] {$x_2$};
+  \end{scope}
+  \coordinate (xu) at (2.5,2); %unconstrained optimum
+  \coordinate (xc) at (2.837,1.0427); %constrained optimum
+  \coordinate (g) at (2.837+0.3527,1.0427-1);
+  \begin{scope}[shift={(xu)},rotate=-45]
+    %unconstrained optimum
+    \filldraw  (xu) circle (1pt) node[above] {$\vect{x}_u$};
+    %constrained optimum
+    \filldraw  (xc) circle (1pt) node[above] {$\vect{x}_c$};
+    %contours of the cost function
+    \draw (0,0) circle (2) node[shift={(-1.75,1.75)}] {$f(\vect{x})$};
+    \draw (0,0) circle (1.0148);
+  \end{scope}
+  %constraint
+  \draw[domain=0.5:6,samples=100] plot (\x,{ln(\x)}) node[below] {$h(\vect{x})$};
+  %gradients
+  \begin{scope}[->,>=stealth,every node/.style={fill=white,inner sep=1pt}]
+    \draw (xc) -- (g) node[below,yshift=-1mm] {$\vect{\nabla}f(\vect{x}_c)$};
+    \draw (xc) -- ($(xc)+0.6*(g)-0.6*(xc)$) node[right,xshift=1mm] {$\vect{\nabla}h(\vect{x}_c)$};
+  \end{scope}
+  % filter values
+\end{tikzpicture}
+
+%matlab
+%find yi so that f=0
+%y=linspace(1,5,10000);x1=2.5;x2=2;f=y.^2-x1*y-x2+log(y);plot(y,f)
+%then find the length from constraint to xo
+%norm([x1,x2]-[yi,log(yi)])
+%the end coordinate of the gradient is
+% xc + [1/yi,-1]

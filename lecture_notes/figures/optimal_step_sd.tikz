@@ -1,0 +1,23 @@
+\begin{tikzpicture}[y=2cm]
+  %axes
+  \draw[->,>=latex] (-0.5,0) -- (8,0) node [below] {$\mu$};
+  \draw[->,>=latex] (0,-0.2) -- (0,1.2) node [left] {$|1-\mu\lambda_m|$};
+  \draw (-2pt,1) node [left] {$1$} -- (2pt,1);
+  %eigenvalues
+  \coordinate (lam1) at (1,0);
+  \coordinate (lam2) at (2.5,0);
+  \coordinate (lam3) at (4,0);
+  \coordinate (muo) at (1.6,0.6);
+  %draw modes
+  \draw (0,1) -- (lam1) -- ($2*(lam1)+(0,1)$);
+  \draw (0,1) -- (lam2) -- ($2*(lam2)+(0,1)$);
+  \draw (0,1) -- (lam3) -- ($2*(lam3)+(0,1)$);
+  %write text
+  \begin{scope}[below]
+    \node at (lam1) {$\frac{1}{\lambda_\textup{max}}$};
+    \node at (lam2) {$\frac{1}{\lambda_2}$};
+    \node at (lam3) {$\frac{1}{\lambda_\textup{min}}$};
+    \draw[dashed] (muo) -- (muo |- 0,0) node {$\mu_o$};
+    \filldraw (muo) circle (1pt);
+  \end{scope}
+\end{tikzpicture}

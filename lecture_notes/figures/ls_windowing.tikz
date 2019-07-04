@@ -1,0 +1,27 @@
+\begin{tikzpicture}
+  \matrix (phi) [
+    matrix of nodes,
+    left delimiter=\lbrack,
+    right delimiter=\rbrack,
+    column sep=5mm,
+    row sep=5mm
+  ] 
+  {   & [4cm] & 0\\
+    0 &       &  \\
+  };
+  \node[left,xshift=-2mm] at (phi.west) {$\vect{A}^T = $};
+  %create two coordinates
+  \coordinate (phisw) at ([xshift=1cm]phi.south west);
+  \coordinate (phise) at ([xshift=-1cm]phi.south east);
+  %draw diamond
+  \draw[fill=gray!20] (phi.north west) -- (phisw) -- (phi.south east) -- (phise |- phi.north west) -- cycle;
+  \draw[dashed] (phisw) -- (phisw |- phi.north west);
+  \draw[dashed] (phise) -- (phise |- phi.north west);
+  %braces
+  \begin{scope}[decoration={brace,mirror}]
+    \draw[decorate] ([yshift=-1mm]phisw) -- node[midway,below] {$\vect{A}_1^T$} ([yshift=-1mm]phise);
+    \draw[decorate] ([yshift=-7mm]phi.south west) -- node[midway,below] {$\vect{A}_2^T$} ([yshift=-7mm]phi.south east);
+    \draw[decorate] ([yshift=-13mm]phi.south west) -- node[midway,below] {$\vect{A}_3^T$} ([yshift=-13mm]phise);
+    \draw[decorate] ([yshift=-19mm]phisw) -- node[midway,below] {$\vect{A}_4^T$} ([yshift=-19mm]phi.south east);
+  \end{scope}
+\end{tikzpicture}

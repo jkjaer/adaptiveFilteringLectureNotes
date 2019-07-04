@@ -1,0 +1,9 @@
+\begin{tikzpicture}[y=2cm]
+  %axes
+  \draw[->,>=latex] (-0.5,0) -- (8,0) node [below] {$i$};
+  \draw[->,>=latex] (0,-0.2) -- (0,1.2) node [left] {$\beta(n,i)$};
+  %window
+  \draw (0,1) -- (7,1);
+  \draw[fill=white] (0,1) circle (1pt) node [left] {1};
+  \draw[dashed] (7,1) -- (7,0) node[below] {$n$};
+\end{tikzpicture}

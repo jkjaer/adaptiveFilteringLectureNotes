@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+  %axes
+  \begin{scope}[->,>=latex]
+    \draw (-0.5,0) -- (6,0) node[below] {$n$};
+    \draw (0,-0.2) -- (0,2.2) node[left] {$J_1(\vect{w}(n))$};
+  \end{scope}
+  %cost function
+  \draw[dashed] (0,0.25) node[left] {$J_1(\vect{w}_o)$}-- (6,0.25);
+  \draw plot[id=J,domain=0:6,samples=100] function{0.25+3*2**(-2*x-1)};
+\end{tikzpicture}

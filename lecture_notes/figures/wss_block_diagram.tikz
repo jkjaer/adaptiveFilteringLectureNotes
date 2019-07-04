@@ -1,0 +1,17 @@
+\begin{tikzpicture}
+%draw matrix of nodes
+  \matrix[row sep=5mm,column sep=10mm]{
+    & & \node (desired) {$d(n)$}; & &\\
+    \node (input) {$u(n)$}; & \node [blocknode] (filter) {$w_m$}; & \node [combnode] (sumyd) {$\Sigma$}; & \node (error) {$e(n)$};\\
+  };
+  %draw arrows
+  \begin{scope}[->,>=latex]
+    %column 1
+    \draw (desired) -- (sumyd);
+    %column 2
+    \draw (input) -- (filter);
+    \draw (filter) -- node[above,midway]{$y(n)$} (sumyd);
+    \path (sumyd) [late options={label=195:$-$}];
+    \draw (sumyd) -- (error);
+  \end{scope}
+\end{tikzpicture}

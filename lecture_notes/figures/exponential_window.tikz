@@ -1,0 +1,10 @@
+\begin{tikzpicture}[y=2cm]
+  %axes
+  \draw[->,>=latex] (-0.5,0) -- (8,0) node [below] {$i$};
+  \draw[->,>=latex] (0,-0.2) -- (0,1.2) node [left] {$\beta(n,i)$};
+  \draw (1pt,1) -- (-1pt,1) node[left] {1};
+  %window
+  \draw plot[id=ew,domain=0:7,samples=100] function{0.70**(7-x)} node[above] {$\lambda^{n-i}$};
+  \draw[dashed] (7,1) -- (7,0) node[below] {$n$};
+  \draw[fill=white] (0,0.08235) circle (1pt);
+\end{tikzpicture}

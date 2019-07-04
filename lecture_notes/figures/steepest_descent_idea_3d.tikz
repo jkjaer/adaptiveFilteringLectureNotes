@@ -1,0 +1,33 @@
+\begin{tikzpicture}
+  %axes
+  \begin{scope}[->,>=latex]
+    \draw (-1,0) -- (6,0) node[below] {$w_0$};
+    \draw (0,-0.5) -- (0,4) node[left] {$w_1$};
+  \end{scope}
+  \coordinate (wo) at (2.3,1.5); %R = [5,3;3,5]/8; r = [2;1.8];
+  \begin{scope}[shift={(wo)},rotate=-45]
+    %optimal filter
+    \filldraw  (wo) ellipse (1pt and 0.5pt) node[left] {$\vect{w}_o$};
+    %contours of the cost function
+    \draw (0,0) ellipse (2.9967 and 1.4983);
+    \draw (0,0) ellipse (1.7980 and 0.8990);
+  \end{scope}
+  %gradients
+  \begin{scope}[->,>=stealth,every node/.style={fill=white,inner sep=1pt}]
+    %w(0)
+    \draw (4,1.8) -- (6.350,3.450) node[above left] {$\vect{g}(\vect{w}(0))$};
+    \draw (4,1.8) -- (2.120,0.480) node[below right] {$-\frac{\mu}{2}\vect{g}(\vect{w}(0))$};
+    %w(1)
+    \draw (2.120,0.480) -- (1.13,-0.93) node[left] {$\vect{g}(\vect{w}(1))$};
+    \draw (2.120,0.480) -- (2.912,1.608) node[above,yshift=2mm] {$-\frac{\mu}{2}\vect{g}(\vect{w}(1))$};
+  \end{scope}
+  % filter values
+  %w(0)
+  \filldraw  (4,1.8) circle (1pt) node[right] {$\vect{w}(0)$};
+  %w(1)
+  \filldraw  (2.120,0.480) circle (1pt) node[left] {$\vect{w}(1)$};
+\end{tikzpicture}
+
+%matlab
+%w
+%R=A;r=[2;1.8];wo=R\r;[X,L,dum]=svd(R);w = [4;1.8]; sqrt([1,0.25]*(X'*(w-wo)).^2)*[2,1],g = 2*R*w-2*r;g+w,u=2/trace(L);w-u*g/2

@@ -1,0 +1,7 @@
+\begin{tikzpicture}
+  \draw (0,0) ellipse (4 and 1.5);
+  \draw (-0.75,0) ellipse (2.25 and 1.3);
+  \node[draw,circle,text width=1.5cm,text centered] at (-1.75,0) {stationary processes};
+  \node[circle,text width=1.5cm,text centered] at (0.25,0) {WSS processes};
+  \node[circle,text width=2cm,text centered] at (2.75,0) {all stochastic processes};
+\end{tikzpicture}

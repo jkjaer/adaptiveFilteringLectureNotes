@@ -1,0 +1,36 @@
+\begin{tikzpicture}
+%draw matrix of nodes
+  \matrix[row sep=5mm,column sep={40mm,between origins},nodes=blocknode]{
+                                        & \node[left,xshift=15mm,fill=white,minimum width=7cm,text width=6.5cm] (bd) {\includegraphics[width=7cm]{figures/wss_block_diagram}};\\
+    \node (wh) {Wiener-Hopf Equations}; & \node (ls) {Normal Equations};               \\[5mm]
+    \node (sd) {Steepest Descent};      & \node (lms) {LMS};                           \\
+                                        & \node (nlms) {NLMS};                         \\
+                                        & \node (apa) {Affine Projections};            \\
+                                        & \node (rls) {Recursive Least-Squares};       \\
+  };
+  %draw grid
+  \draw [dashed] (bd.south) -- (bd.south |- rls.south);
+  \draw [dashed] ([yshift=-5mm] wh.south west) -- ([yshift=-5mm] ls.south east);
+  %draw arrows between blocks
+  \begin{scope}[->,>=latex]
+    %column 1
+    \draw (bd)  -- (wh);
+    \draw (bd)  -- (ls);
+    %column 2
+    \draw (wh)  -- (sd);
+    \draw (ls)  -- ([xshift=10mm] ls.east) |- (rls);
+    %column 3
+    \draw (sd)  -- (lms);
+    \draw (sd)  |- (nlms);
+    \draw (lms) -- (nlms);
+    %column 5
+    \draw (apa) -- (nlms);
+  \end{scope}
+  %text
+  \node[yshift=2mm,above] at (wh.north |- bd.north) {Known Statistics};
+  \node[yshift=2mm,above] at (ls.north |- bd.north) {Unknown Statistics};
+  \node[shift={(-2mm,2mm)},above,rotate=90] at (wh.north west) {WSS Signals};
+  \node[shift={(-2mm,2mm)},above,rotate=90] at (sd.west |- nlms.south) {Non-WSS Signals};
+  \draw[decorate,decoration={brace}] ([xshift=1mm]lms.north east) -- node[midway,above,rotate=-90,yshift=1mm] {Stochastic Gradient Methods} ([xshift=1mm]apa.south east);
+  \draw[->,>=stealth] ([xshift=15mm] lms.north -| rls.east) -- node[midway,above,rotate=-90,yshift=1mm,text width=6cm,text centered] {Increasing Computational Complexity and Performance} ([xshift=15mm] rls.south east);
+\end{tikzpicture}

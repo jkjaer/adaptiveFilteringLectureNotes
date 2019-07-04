@@ -1,0 +1,24 @@
+\begin{tikzpicture}
+%draw matrix of nodes
+  \matrix[row sep=5mm,column sep=10mm]{
+    & & & \node (noise) {$v(n)$}; & &\\
+    \node (input) {$u(n)$};& \node [dotnode] (dotinp) {}; & \node [blocknode] (system) {$w_{o,m}$}; & \node [combnode] (sumzv) {$\Sigma$}; & &\\
+     & & \node [blocknode] (filter) {$w_m(n)$}; & \node [combnode] (sumyd) {$\Sigma$}; & \node (error) {$e(n)$};\\
+  };
+  %draw arrows
+  \begin{scope}[->,>=latex]
+    %column 1
+    \draw (noise) --  (sumzv);
+    %column 2
+    \draw (input) -- (dotinp) -- (system);
+    \draw (system) -- node[above,midway]{$z(n)$} (sumzv);
+    \draw (sumzv) -- node[right,near end]{$d(n)$} (sumyd);
+    %column 3
+    \draw (dotinp) |- (filter);
+    \draw (filter) -- node[above,midway]{$y(n)$} (sumyd);
+    \path (sumyd) [late options={label=195:$-$}];
+    \draw (sumyd) -- (error);
+  \end{scope}
+  % draw dashed block around the adaptive filter
+  \draw[dashed] ([shift={(-15mm,-2mm)}]filter.south west) rectangle ([shift={(40mm,2mm)}]filter.north east) node [above right,anchor=south east] {Adaptive Filter};
+\end{tikzpicture}

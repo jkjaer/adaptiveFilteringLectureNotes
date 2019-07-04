@@ -1,0 +1,13 @@
+\begin{tikzpicture}
+  %axes
+  \begin{scope}[->,>=latex]
+    \draw (-0.5,0) -- (6,0) node[below] {$n$};
+    \draw (0,-0.2) -- (0,3.2) node[left] {$J_1(\vect{w}(n))$};
+  \end{scope}
+  %cost function
+  \draw[dashed] (0,0.2) node[left] {$J_\textup{min}$}-- (6,0.2);
+  \draw[dashed] (0,0.5) node[left] {$J_\textup{min}+J_\textup{ex}$}-- (6,0.5);
+  \draw plot[id=J,domain=0:6,samples=100] function{0.5+5*2**(-2*x-1)};
+  \draw [<->,>=stealth] (0.5,0) -- (0.5,7/4) node[right] {MSE};
+  \draw [<->,>=stealth] (6,0.2) -- node[midway,right] {EMSE} (6,0.5);
+\end{tikzpicture}

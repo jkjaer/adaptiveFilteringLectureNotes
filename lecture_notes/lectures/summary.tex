@@ -1,0 +1,37 @@
+\chapter{Summary}
+\label{ch:summary}
+\begin{figure}
+  \centering
+  \inputTikZ{figures/overview}
+  \caption{Overview over the various important concepts, equations and adaptive filters covered in these lecture notes.}
+  \label{fig:overview}
+\end{figure}
+\noindent Fig.~\ref{fig:overview} shows an overview over the various important concepts, equations and adaptive filters covered in these lecture notes. All relationships indicated by the arrows have been covered with the exception of the arrow from the steepest descent block to the NLMS block. The interested reader may establish this relationship by solving Problem 1 of Chapter 6 in \cite{Haykin2001}.
+
+Table~\ref{tab:summary} shows a summary of the adaptive filters covered in these lecture notes. Most the expressions for the mean-square stability, the excess mean-square error (EMSE), the misadjustment, and the mean-square deviation (MSD) are approximations, and they can therefore only be used as a rule of thumb. For more accurate expressions see the description of the adaptive filters and the references therein.
+
+\begin{sidewaystable}
+  \centering
+  \small
+  \begin{tabular}{@{}Sl Sr<{ = }@{ }Sl Sc Sc Sc Sc Sc Sc@{}}
+    \toprule
+    Name & \multicolumn{2}{c}{Algorithm} & Cost & Mean-Square Stability & EMSE & Misadjustment & MSD\\
+    \midrule
+    SD  & $\vect{g}(\vect{w}(n))$ & $2\vect{R}_u\vect{w}(n)-2\vect{r}_{ud}(n)$       & $\mathcal{O}(M)$   & $0 < \mu < \displaystyle\frac{2}{\lambda_\textup{max}}$ & 0 & 0 & 0\\
+        & $\vect{w}(n+1)$         & $\vect{w}(n)-\displaystyle\frac{\mu}{2}\vect{g}(\vect{w}(n))$ &      & & & &\\[4mm]
+    LMS & $e(n)$                  & $d(n)-\vect{u}^T(n)\vect{w}(n)$                 & $\mathcal{O}(M)$   & $0 < \mu < \displaystyle\frac{2}{\tr{\vect{R}_u}}$ & $\displaystyle\frac{\mu}{2}J_\textup{min}\tr{\vect{R}_u}$ & $\displaystyle\frac{\mu}{2}\tr{\vect{R}_u}$ & $\displaystyle\frac{\mu}{2}J_\textup{min}M$\\
+        & $\vect{w}(n+1)$         & $\vect{w}(n)+\mu\vect{u}(n)e(n)$                &                    & & & &\\[4mm]
+    NLMS& $e(n)$                  & $d(n)-\vect{u}^T(n)\vect{w}(n)$                 & $\mathcal{O}(M)$   & $0 < \beta < 2$& $\displaystyle\frac{\beta}{2}J_\textup{min}$ & $\displaystyle\frac{\beta}{2}$ & $\displaystyle\frac{\beta J_\textup{min}}{2\tr{\vect{R}_u}}$\\
+        & $\vect{w}(n+1)$         & $\vect{w}(n)+\displaystyle\frac{\beta}{\epsilon+\|\vect{u}(n)\|^2}\vect{u}(n)e(n)$ & & & & &\\[4mm]
+    APA & $\vect{e}(n)$           & $\vect{d}(n)-\vect{U}^T(n)\vect{w}(n)$          & $\mathcal{O}(MK^2)$& $0 < \beta < 2$&$\displaystyle\frac{\beta}{2}J_\textup{min}K$ & $\displaystyle\frac{\beta}{2}K$ & no simple expression\\
+        & $\vect{w}(n+1)$         & \multicolumn{2}{@{}Sl}{$\vect{w}(n)+\beta\vect{U}(n)[\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n)]^{-1}\vect{e}(n)$} & & & &\\[4mm]
+    RLS & $\vect{\pi}(n)$         & $\vect{P}(n-1)\vect{u}(n)$                      & $\mathcal{O}(M^2)$ & $0 < \lambda \leq 1$&$\displaystyle\frac{J_\textup{min}\frac{1-\lambda}{1+\lambda}M}{1-\frac{1-\lambda}{1+\lambda}M}$ & $\displaystyle\frac{\frac{1-\lambda}{1+\lambda}M}{1-\frac{1-\lambda}{1+\lambda}M}$ & $\displaystyle\frac{J_\textup{min}\frac{1-\lambda}{1+\lambda}M}{1-\frac{1-\lambda}{1+\lambda}M}\sum_{m=1}^M\frac{1}{\lambda_m}$\\
+        & $\vect{k}(n)$           & $\displaystyle\frac{\vect{\pi}(n)}{\lambda+\vect{u}^T(n)\vect{\pi}(n)}$& & & & &\\
+        & $\xi(n)$                & $d(n)-\vect{u}^T(n)\vect{w}(n-1)$               &                    & & & &\\
+        & $\vect{w}(n)$         & $\vect{w}(n-1)+\vect{k}(n)\xi(n)$               &                    & & & &\\
+        & $\vect{P}(n)$           & \multicolumn{2}{@{}Sl}{$\lambda^{-1}\left[\vect{P}(n-1)-\vect{k}(n)\vect{\pi}^T(n)\right]$}& & & &\\
+    \bottomrule
+  \end{tabular}
+  \caption{Overview over the basic adaptive filters and their properties. Most of the expressions for the mean-square stability, the excess mean-square error (EMSE), the misadjustment, and the mean-square deviation (MSD) are approximations.}
+  \label{tab:summary}
+\end{sidewaystable}

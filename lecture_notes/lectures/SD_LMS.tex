@@ -1,0 +1,383 @@
+\chapter{Steepest Descent and Least-Mean-Square Adaptive Filters}
+\label{ch:SD_LMS}
+
+\section{Review of the Basics}
+\subsection{The Eigenvalue Decomposition}
+If a square $M\times M$ matrix $\vect{A}$ has an eigenvalue decomposition (EVD), it can be written as
+\bmath
+  \vect{A} = \vect{X\Lambda X}^{-1}\qquad\iff\qquad\vect{AX}=\vect{X\Lambda}
+\emath
+where $\vect{X}$ contains the $M$ linearly independent eigenvectors of $\vect{A}$, and the diagonal matrix $\vect{\Lambda}$ contains the $M$ eigenvalues $\{\lambda_m\}_{m=1}^M$ of $\vect{A}$. If $\vect{A}$ does not have an eigenvalue decomposition, it is said to be \textit{defective}.
+\subsubsection{Matrix Powers}
+Let $\vect{A}$ have an EVD. Then
+\begin{align}
+  \vect{A} & = \vect{X\Lambda X}^{-1}\\
+  \vect{A}^2 & \underset{\vdots}{=} \vect{X\Lambda X}^{-1}\vect{X\Lambda X}^{-1}=\vect{X\Lambda}^2\vect{X}^{-1}\\
+%  &\ \,\vdots\notag\\
+  \vect{A}^n &= \vect{X\Lambda}^n\vect{X}^{-1}\ .
+\end{align}
+\subsubsection{EVD of Special Matrices}
+Let $\vect{A}$ be a symmetric matrix. Then
+\begin{itemize}
+  \item[] $\vect{A}$ has an EVD,
+  \item[] $\vect{A}=\vect{X\Lambda X}^T$ ($\vect{X}$ is an orthogonal matrix), and
+  \item[] $\lambda_m\in\mathbb{R}$ for $m=1,\ldots,M$
+\end{itemize}
+Let $\vect{A}$ be a p.d. matrix. Then
+\begin{itemize}
+  \item[] $\lambda_m\in\mathbb{R}^+$ for $m=1,\ldots,M$.
+\end{itemize}
+where $\mathbb{R}^+$ is the set of all positive real numbers.
+\subsubsection{Matrix Trace}
+The trace of $\vect{A}$ is
+\bmath
+  	\tr{\vect{A}} = \sum_{m=1}^M a_{mm} = \sum_{m=1}^M \lambda_m = \tr{\vect{\Lambda}}\ .
+\emath
+
+\subsubsection{Condition Number of a Normal Matrix}
+If $\vect{A}$ is a normal matrix (i.e., $\vect{A}^T\vect{A}=\vect{A}\vect{A}^T$), then the condition number of $\vect{A}$ is
+\bmath
+  \kappa(\vect{A}) = \left|\frac{\lambda_\text{max}}{\lambda_\text{min}}\right| = \chi(\vect{A})
+\emath
+where $\chi(\vect{A})$ is the eigenvalue spread of $\vect{A}$.
+
+\section{The Wiener-Hopf Equations}
+The adaptive filtering problem with time-varying filter coefficients is shown in Fig.~\ref{fig:nonwss_block_diagram1}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/nonwss_block_diagram}
+  \caption{Block diagram of adaptive filtering in a non-WSS environment.}
+  \label{fig:nonwss_block_diagram1}
+\end{figure}
+From the figure, we have that
+\begin{itemize}
+  \item[$u(n)$:] zero-mean input signal
+  \item[$w_m(n)$:] $M$-tap FIR-filter with impulse response $w_0(n),w_1(n),\ldots,w_{M-1}(n)$
+  \item[$y(n)$:] output signal given by $y_n = \sum_{m=0}^{M-1}w_m(n) u(n-m)$
+  \item[$d(n)$:] zero-mean desired signal
+  \item[$e(n)$:] error signal
+\end{itemize}
+\subsubsection{WSS Signals}
+When $u(n)$ and $d(n)$ are jointly WSS, the filter coefficients are not time-varying. Define
+\begin{align}
+  \vect{w} &= \bbmtx w_0 & w_{1} & \cdots & w_{M-1}\ebmtx^T\\
+  \vect{u}(n) &= \bbmtx u(n) & u(n-1) & \cdots & u(n-M+1)\ebmtx^T\ .
+\end{align}
+Then
+\bmath
+  e(n) = d(n) - y(n) = d(n)-\vect{u}^T(n)\vect{w}\ .
+\emath
+We wish to minimise
+\begin{align}
+  J_1(\vect{w}) &= E[e(n)^2] = E[d(n)^2] + \vect{w}^T E[\vect{u}(n)\vect{u}^T(n)] \vect{w}-2\vect{w}^T E[\vect{u}(n) d(n)]\notag\\
+  &= \sigma_d^2+\vect{w}^T\vect{R}_u\vect{w}-2\vect{w}^T\vect{r}_{ud}
+\end{align}
+w.r.t. $\vect{w}$. The minimiser
+\bmath
+  \vect{w}_o = \vect{R}_u^{-1}\vect{r}_{ud}
+\emath
+is the unique solution to the Wiener-Hopf equations
+\bmath
+  \vect{R}_u\vect{w} = \vect{r}_{ud}\ ,
+\emath
+provided that $\vect{R}_u$ is p.d. 
+\subsubsection{Non-WSS Signals}
+If $u(n)$ and $d(n)$ are \textit{not} jointly WSS, the optimal filter coefficients are time-varying, and we have that
+\bmath
+  \vect{R}_u(n)\vect{w}(n) = \vect{r}_{ud}(n)
+\emath
+where
+\begin{align}
+  \vect{R}_u(n) &=
+  \bbmtx
+    r_u(n,n) & \cdots & r_u(n,n-M+1)\\
+    \vdots & \ddots & \vdots\\
+    r_u(n-M+1,n) & \cdots & r_u(n-M+1,n-M+1)\\
+  \ebmtx\\
+  \vect{r}_{ud}(n) &= \bbmtx r_{ud}(n,n) & \cdots & r_{ud}(n-M+1,n)\ebmtx^T\ .
+\end{align}
+We could find the optimal solution by calculating
+\bmath
+  \vect{w}_o(n) = \vect{R}_u^{-1}(n)\vect{r}_{ud}(n)
+\emath
+for every time index $n$. However, this approach may suffer from problems such as that
+\begin{enumerate}
+  \item the computational complexity is high, and
+  \item the statistics is unknown.
+\end{enumerate}
+The steepest descent algorithm solves the first problem, and the least-mean-square (LMS) adaptive filter solves both problems.
+
+\section{The Method of Steepest Descent}
+\subsection{Basic Idea}
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/steepest_descent_idea_2d}
+  \caption{The first three iterations of the steepest descent algorithm for a one-dimensional filter vector.}
+  \label{fig:steepest_descent_idea_2d}
+\end{figure}
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/steepest_descent_idea_3d}
+  \caption{The first three iterations of the steepest descent algorithm for a two-dimensional filter vector.}
+  \label{fig:steepest_descent_idea_3d}
+\end{figure}
+The basic idea of the steepest descent (SD) algorithm is to find the unique solution $\vect{w}_o$ of the Wiener-Hopf equations through a series of steps, starting from some point $\vect{w}(0)$. The steps are taken in the opposite direction of the gradient $\vect{g}(\vect{w}(n))$. This idea is illustrated in Fig.~\ref{fig:steepest_descent_idea_2d} and Fig.~\ref{fig:steepest_descent_idea_3d}. We update the filter coefficients by a recursive update equation given by
+\bmath
+  \boxed{\vect{w}(n+1) = \vect{w}(n)-\frac{\mu}{2}\vect{g}(\vect{w}(n))}
+\emath
+where $\mu$ is the step-size and $\vect{g}(\vect{w}(n))$ is the gradient of the cost function $J_1(\vect{w}(n))$. The gradient is
+\bmath
+  \vect{g}(\vect{w}(n)) = 2\vect{R}_u(n)\vect{w}(n) - 2\vect{r}_{ud}(n)\ .
+\emath
+Since the gradient is a deterministic function, the evolution of the filter coefficient vector is also a deterministic function.
+
+Define the weight error
+\bmath
+  \Delta\vect{w}(n) = \vect{w}_o-\vect{w}(n)\ .
+\emath
+In order for the SD algorithm to converge to the solution $\vect{w}_o$, we must require that the step-size $\mu$ is selected such that
+\bmath
+  \lim_{n\to\infty} \Delta\vect{w}(n) = 0
+  \label{eq:sd_stability_req}
+\emath
+when $u(n)$ and $d(n)$ are jointly WSS. If this is true, the SD algorithm is said to be \textit{stable}. Moreover, we would like to select $\mu$ such that the $\Delta\vect{w}(n)$ becomes small as fast as possible.
+
+\subsection{Transient Analysis}
+Assume that $u(n)$ and $d(n)$ are jointly WSS. We then have that
+\begin{align}
+  \Delta\vect{w}(n) &= \vect{w}_o - \left(\vect{w}(n-1)-\frac{\mu}{2}\vect{g}(\vect{w}(n-1))\right)\\
+  &= \Delta\vect{w}(n-1) + \mu(\vect{R}_u\vect{w}(n-1)-\vect{R}_u\vect{w}_o)\\
+  &= (\vect{I}-\mu\vect{R}_u)\Delta\vect{w}(n-1)\\
+  &= (\vect{I}-\mu\vect{R}_u)(\vect{I}-\mu\vect{R}_u)\Delta\vect{w}(n-2)\\
+  &= (\vect{I}-\mu\vect{R}_u)^n\Delta\vect{w}(0)\ .
+\end{align}
+Since the correlation matrix $\vect{R}_u$ is symmetric, it has an eigenvalue decomposition $\vect{R}_u=\vect{X\Lambda X}^T$ where $\vect{X}$ is an orthogonal matrix. That is, we may write
+\bmath
+  \Delta\vect{w}(n) = \vect{X}(\vect{I}-\mu\vect{\Lambda})^n\vect{X}^T\Delta\vect{w}(0)
+\emath
+where $\vect{I}-\mu\vect{\Lambda}$ is a diagonal matrix with the $m$'th diagonal given by the mode $1-\mu\lambda_\textup{m}$. For \eq{eq:sd_stability_req} to be fulfilled from any starting point $\vect{w}(0)$, we must therefore require that
+\bmath
+  \lim_{n\to\infty} (1-\mu\lambda_\textup{m})^n = 0\ ,\quad\text{for }m=1,2,\ldots,M\ .
+  \label{eq:sd_mode}
+\emath
+Thus
+\begin{alignat}{2}
+  && -1 < 1-&\mu\lambda_\textup{m} < 1\ ,\quad\text{for }m=1,2,\ldots,M\\
+  \ArrowBetweenLines
+  && -1 < 1-&\mu\lambda_\textup{max} < 1
+\end{alignat}
+Solving for $\mu$ leads to that the SD algorithm is stable if
+\bmath
+  \boxed{0 < \mu < \frac{2}{\lambda_\textup{max}}}\ .
+\emath
+From \eq{eq:sd_stability_req}, we see that
+\begin{alignat*}{2}
+  &|1-\mu\lambda_m|\text{ is close to 0} &\qquad &\iff\qquad\text{ mode with fast convergence}\\
+  &|1-\mu\lambda_m|\text{ is close to 1} &\qquad &\iff\qquad\text{ mode with slow convergence}
+\end{alignat*}
+The optimal step-size $\mu_o$ is therefore given by
+\begin{alignat}{2}
+  \mu_o&= \argmin_{\mu} \max_{\lambda_m} & |1-\mu\lambda_m|&\\
+  &\text{subject to }             & |1-\mu\lambda_m|&<1\ ,\text{ for } m=1,\ldots,M\ .
+\end{alignat}
+That is, $\mu_o$ minimises the value of the largest (slowest) mode. We solve this optimisation problem by the use of Fig~\ref{fig:optimal_step_sd}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/optimal_step_sd}
+  \caption{Finding the optimal step-size.}
+  \label{fig:optimal_step_sd}
+\end{figure}
+From Fig~\ref{fig:optimal_step_sd}, we see that the optimal step-size $\mu_o$ satisfies
+\begin{alignat}{2}
+   && 1-\mu_o\lambda_\textup{min} &= -(1-\mu_o\lambda_\textup{max})\\
+   \ArrowBetweenLines
+   && \alignedbox{\mu_o}{=\frac{2}{\lambda_\textup{max}+\lambda_\textup{min}}}\ .
+\end{alignat}
+For the optimal step-size, the slowest modes $\pm(1-\mu_o\lambda_\textup{max})$ and $\pm(1-\mu_o\lambda_\textup{min})$ are therefore given by
+\bmath
+  \pm\frac{\lambda_\textup{max}-\lambda_\textup{min}}{\lambda_\textup{max}+\lambda_\textup{min}} = \pm\frac{\kappa(\vect{R}_u)-1}{\kappa(\vect{R}_u)+1}
+\emath
+where $\kappa(\vect{R}_u)$ is the condition number of the correlation matrix $\vect{R}_u$. Thus, if the condition number is large, the slowest modes are close to one, and the convergence of the SD algorithm is slow. Conversely, if the condition number is close to one, the slowest modes are close to zero, and the convergence of the SD algorithm is fast.
+
+\subsubsection{Learning Curve}
+The cost function can be written as
+\begin{align}
+  J_1(\vect{w}(n)) &= J_1(\vect{w}_o) + \Delta\vect{w}^T(n)\vect{R}_u\Delta\vect{w}(n)\\
+  &= J_1(\vect{w}_o) + \Delta\vect{w}^T(0)\vect{X}(\vect{I}-\mu\vect{\Lambda})^n\vect{\Lambda}(\vect{I}-\mu\vect{\Lambda})^n\vect{X}^T\Delta\vect{w}(0)\\
+  &= J_1(\vect{w}_o)+\sum_{m=1}^M\lambda_m(1-\mu\lambda_m)^{2n}\left(\vect{x}_m^T\Delta\vect{w}(0)\right)^2\ .
+\end{align}
+The plot of $J_1(\vect{w}(n))$ as a function of $n$ is called the learning curve, and a sketch of it is shown in Fig.~\ref{eq:sd_learning_curve}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/learning_curve_sd}
+  \caption{The learning curve of the steepest descent algorithm.}
+  \label{eq:sd_learning_curve}
+\end{figure}
+
+\section{Least-Mean-Square Adaptive Filters}
+\subsection{Basic Idea}
+Recall, that the gradient of the mean-squared error cost function $J_1(\vect{w}(n))$ is
+\bmath
+  \vect{g}(\vect{w}(n)) = \frac{\partial E[e^2(n)]}{\partial\vect{w}(n)} = 2E\left[\frac{\partial e(n)}{\partial\vect{w}(n)}e(n)\right] = -2E[\vect{u}(n)e(n)]\ .
+\emath
+Often, we do not know the gradient, and we therefore have to estimate it. A simple estimate is
+\bmath
+  \hat{\vect{g}}(\vect{w}(n)) = -2\vect{u}(n)e(n)\ .
+\emath
+If we replace the gradient in the steepest descent algorithm with this estimate, we obtain
+\bmath
+  \boxed{\vect{w}(n+1) = \vect{w}(n)+\mu\vect{u}(n)e(n)}
+\emath
+which is called the least-mean-square (LMS) algorithm. A block diagram of the LMS filter is depicted in Fig.~\ref{eq:block_diagram_w_feedback}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/block_diagram_w_feedback}
+  \caption{Typical block diagram of an adaptive filter in the case where the statistics is unknown.}
+  \label{eq:block_diagram_w_feedback}
+\end{figure}
+The LMS algorithm is the simplest \textit{stochastic gradient method} (SGM). The naming of the SGM refers to that the gradient is a stochastic process. This has the following consequences.
+\begin{enumerate}
+  \item The filter coefficient vector $\vect{w}(n)$ is also a stochastic process. This makes the analysis of the SGMs difficult. To see this, consider the cost function
+\begin{align}
+  J_1(\vect{w}(n)) &= E[e^2(n)]\notag\\
+  &= \sigma_d^2(n) + E[\vect{w}^T(n)\vect{u}(n)\vect{u}^T(n)\vect{w}(n)]-2E[\vect{w}^T(n)\vect{u}(n)d(n)]\ .
+\end{align}
+For the stochastic gradient methods, it is not easy to evaluate the expectations in the cost function since $\vect{w}(n)$ and $\vect{u}(n)$ are not independent (unless $M=1$ and $u(n)$ is a white process).
+  \item The weight error $\Delta\vect{w}(n)=\vect{w}_o-\vect{w}(n)$ never goes permanently to zero. That is, in steady-state ($n\to\infty$), the filter coefficient vector $\vect{w}(\infty)$ fluctuates randomly around the optimum $\vect{w}_o$. Consequently, the mean-square error (MSE) $J_1(\vect{w}(\infty))$ in steady-state is larger than $J_\textup{min} = J_1(\vect{w}_o)$ by an amount referred to as the \textit{excess mean-square} error (EMSE)
+  \bmath
+    J_\textup{ex} = J_1(\vect{w}(\infty)) - J_\textup{min}\ .
+  \emath
+  The ratio of the EMSE to the MSE is called the \textit{misadjustment}
+  \bmath
+    \mathcal{M} = \frac{J_\textup{ex}}{J_\textup{min}} = \frac{J_1(\vect{w}(\infty))}{J_\textup{min}}-1\ .
+  \emath
+\end{enumerate}
+In Lecture~\ref{ch:NLMS_APA}, we say more about these parameters and the analysis of adaptive filters.
+
+
+\subsection{Transient Analysis}
+Assume that $d(n)$ is given by\footnote{This model is quite popular for the analysis of adaptive filters. We say more about this model in Sec.~\ref{ssec:analysis_model}.}
+\bmath
+  d(n) = \vect{u}^T(n)\vect{w}_o + v(n)
+  \label{eq:desired_model}
+\emath
+where $v(n)$ is white Gaussian noise with variance $\sigma_v^2$ and uncorrelated with $u(n)$.  Moreover, assume that the random variables of the stochastic process $\vect{u}(n)$ are independent and identically distributed (IID) with a Gaussian distribution and correlation matrix $\vect{R}_u$. This assumption is infeasible unless $M=1$. Nevertheless, we make this assumption anyway in order to make the transient analysis as simple as possible. We are concerned with
+\begin{alignat*}{2}
+  \lim_{n\to\infty} E[\Delta\vect{w}(n)] &= 0 &\qquad &\text{(Convergence in mean)}\\
+  \lim_{n\to\infty} E[\|\Delta\vect{w}(n)\|^2] &= c < \infty &\qquad &\text{(Convergence in mean-square)}
+\end{alignat*}
+where $\|\Delta\vect{w}(n)\|^2=\Delta\vect{w}^T(n)\Delta\vect{w}(n)$ is the vector 2-norm, and $c$ in some positive constant\footnote{Apparently, the definition of convergence in mean-square used for adaptive filtering analysis is different from the usual definition where $c=0$.}.
+
+\subsubsection{Convergence in the Mean}
+By subtracting the LMS recursion from the optimal filter coefficients, we obtain
+\begin{align}
+  \Delta\vect{w}(n) &= \vect{w}_o - \left[\vect{w}(n-1)+\mu\vect{u}(n-1)e(n-1)\right]\\
+  &= \Delta\vect{w}(n-1) - \mu\vect{u}(n-1)\left[d(n-1)-\vect{u}^T(n-1)\vect{w}(n-1)\right]\\
+  &= \left[\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)\right]\Delta\vect{w}(n-1)-\mu\vect{u}(n-1)v(n-1)
+  \label{eq:recur_weight_err}
+\end{align}
+Taking the expectation of both sides and using the above assumptions, we obtain
+\begin{align}
+  E[\Delta\vect{w}(n)] &= (\vect{I}-\mu\vect{R}_u)E[\Delta\vect{w}(n-1)]\\
+  &= \vect{X}(\vect{I}-\mu\vect{\Lambda})^n\vect{X}^T E[\Delta\vect{w}(0)]\ .
+\end{align}
+This recursion is the same as in the transient analysis of the steepest descent algorithm. We therefore have that the LMS algorithm is stable in the mean if
+\bmath
+  \boxed{0 < \mu < \frac{2}{\lambda_\textup{max}}}\ .
+\emath
+The bound given above ensures convergence in the mean, but places no constraint on the variance of $\Delta\vect{w}(n)$. Furthermore, since $\vect{R}_u$ is unknown, $\lambda_\textup{max}$ is unknown, and we have to estimate or upper bound it. We have that
+\bmath
+  \lambda_\textup{max} \leq \tr{\vect{R}_u} = \sum_{m=1}^M r_u(0) = M r_u(0) = M E[u^2(n)]\ .
+\emath
+The expected power $E[u^2(n)]$ can be estimated as 
+\bmath
+  \hat{E}[u^2(n)] = \frac{1}{M}\vect{u}^T(n)\vect{u}(n)\ .
+\emath
+Note that the estimation accuracy increases with the filter length $M$. From Parseval's Theorem, we also have that
+\bmath
+  E[u^2(n)] = \frac{1}{2\pi}\int_{-\pi}^\pi S_u(\omega)d\omega \leq \frac{1}{2\pi}\int_{-\pi}^\pi S_\textup{max}d\omega = S_\textup{max}
+\emath
+where $S_u(\omega)$ is the power spectral density of $u(n)$. Thus, we have that
+\bmath
+  \boxed{\frac{2}{M S_\textup{max}}\leq \frac{2}{\tr{\vect{R}_u}} = \frac{2}{M E[u^2(n)]} \leq \frac{2}{\lambda_\textup{max}}}\ ,
+\emath
+provided that the desired signal model is given by \eq{eq:desired_model} and that $\vect{u}(n)$ is an IID random process.
+
+%Under the assumption that the correlation matrix of the input signal is white
+%\bmath
+%  \vect{R}_u = \sigma_u^2\vect{I}
+%\emath
+%where $\sigma_u^2$ is the variance of the input signal, $\lambda_\textup{min}$ and $\lambda_\textup{max}$ are both equal to $\sigma_u^2$. Optimising the step size in this case does NOT lead to the NLMS!
+
+\subsubsection{Convergence in the Mean-Square}
+From \eq{eq:recur_weight_err}, we have that
+\begin{align}
+  \|\Delta\vect{w}(n)\|^2={}& \|\left[\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)\right]\Delta\vect{w}(n-1)-\mu\vect{u}(n-1)v(n-1)\|^2\notag\\
+  ={}& \|\left[\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)\right]\Delta\vect{w}(n-1)\|^2\notag\\
+  &{}+\mu^2v^2(n-1)\|\vect{u}(n-1)\|^2\notag\\
+  &{}-2\mu v(n) \vect{u}^T(n-1)\left[\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)\right]\Delta\vect{w}(n-1)
+\end{align}
+Taking the expectation on both sides and using the above assumptions, we obtain
+\bmath
+  E[\|\Delta\vect{w}(n)\|^2] = E\left[\|\left[\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)\right]\Delta\vect{w}(n-1)\|^2\right]+\mu^2J_\textup{min}\tr{\vect{\Lambda}}
+\emath
+where $J_\textup{min}=\sigma_v^2$. Evaluating the expected value of the first term and finding the values of the step-size $\mu$ for which $E[\|\Delta\vect{w}(n)\|^2]$ converges in the mean-square require a lot of work. In Appendix~\ref{app:lms_analysis}, we show how this can be done. Alternatively, a derivation can also be found in \cite[pp.~452--465]{Sayed2003}. The final result is that the LMS filter is mean-square stable (and thus stable in the mean) if and only if the step-size satisfies \cite[pp.~462]{Sayed2003}
+\bmath
+  \boxed{f(\mu) = \frac{\mu}{2}\sum_{m=1}^M \frac{\lambda_m}{1-\mu\lambda_m} = \frac{1}{2}\tr{\vect{\Lambda}(\mu^{-1}\vect{I}-\vect{\Lambda})^{-1}} < 1}\ .
+\emath
+For small step-sizes $\mu \ll 1/\lambda_\textup{max}$, we have that
+\bmath
+  f(\mu) \approx \frac{\mu}{2}\sum_{m=1}^M \lambda_m = \frac{\mu}{2}\tr{\vect{\Lambda}} < 1\ .
+\emath
+which leads to that the LMS algorithm is mean-square stable if
+\bmath
+  \boxed{ 0 < \mu < \frac{2}{\tr{\vect{R}_u}}}\ .
+\emath
+
+\subsubsection{Learning Curve}
+The learning curve is also difficult to find. In Appendix~\ref{app:lms_analysis}, we show that the learning curve is given by
+\bmath
+    \boxed{J_1(\vect{w}(n)) = \vect{\Delta w}^T(0)\vect{X}\vect{S}(n)\vect{X}^T\vect{\Delta w}(0)+\mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}+J_\textup{min}}
+    \label{eq:lms_learning_curve}
+\emath
+where
+\bmath
+  \vect{S}(n) = \vect{S}(n-1) - 2\mu\vect{\Lambda}\vect{S}(n-1)+\mu^2[\vect{\Lambda}\tr{\vect{S}(n-1)\vect{\Lambda}}+2\vect{\Lambda}\vect{S}(n-1)\vect{\Lambda}]
+\emath
+with $\vect{S}(0)=\vect{\Lambda}$.
+
+\subsection{Steady-State Analysis}
+When the LMS algorithm is operating in steady-state and is mean-square stable, the EMSE, the mean-square deviation (MSD), and the misadjustment are \cite[pp.~465]{Sayed2003}
+\begin{align}
+  J_\textup{ex} &= J_\textup{min}\frac{f(\mu)}{1-f(\mu)}\\
+  \mathcal{M} &= \frac{f(\mu)}{1-f(\mu)}\\
+  E[\|\vect{\Delta}\vect{w}(\infty)\|^2] &= \frac{J_\textup{min}}{1-f(\mu)}\frac{\mu}{2}\sum_{m=1}^M \frac{1}{1-\mu\lambda_m}\ .
+\end{align}
+These results are also derived in Appendix~\ref{app:lms_analysis}. For small step-sizes $\mu \ll 1/\lambda_\textup{max}$, the EMSE, MSD, and misadjustment simplify to \cite[pp.~465]{Sayed2003}
+\begin{align}
+  J_\textup{ex}&\approx \mu J_\textup{min}\frac{\tr{\vect{R}_u}}{2-\mu\tr{\vect{R}_u}}\approx \frac{\mu}{2}J_\textup{min}\tr{\vect{R}_u}\\
+  \mathcal{M} & \approx \mu \frac{\tr{\vect{R}_u}}{2-\mu\tr{\vect{R}_u}} \approx \frac{\mu}{2}\tr{\vect{R}_u} = \frac{\mu}{2}ME[u^2(n)]\\
+  E[\|\Delta\vect{w}(\infty)\|^2] &\approx \mu J_\textup{min}\frac{M}{2-\mu\tr{\vect{R}_u}} \approx \frac{\mu}{2}J_\textup{min}M\ .
+\end{align}
+The approximated expression for the misadjustment shows that misadjustment is approximately proportional to the input power. This is undesirable and referred to as \textit{gradient noise amplification}. In Lecture~\ref{ch:NLMS_APA}, we consider the normalised LMS algorithm which solves this problem.
+
+\subsection{Computational Cost}
+Table~\ref{tab:comp_cost_lms} shows the computational cost of the LMS algorithm in terms of the number of multiplications and additions or subtractions. From the table, we see that the total number of flops is $4M+1$. Thus, the LMS algorithm has a linear complexity $\mathcal{O}(M)$ in the filter length $M$.
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{l c c c}
+    \toprule
+    Term & $\times$ & $+$ or $-$ \\
+    \midrule
+    $\vect{u}^T(n)\vect{w}(n)$ & $M$ & $M-1$ \\
+    $e(n)=d(n)-\vect{u}^T(n)\vect{w}(n)$ & & $1$ \\
+    $\mu e(n)$ & $1$ & \\
+    $\mu \vect{u}(n)e(n)$ & $M$ & \\
+    $\vect{w}(n)+\mu \vect{u}(n)e(n)$ &  & $M$ \\
+    \midrule
+    Total & $2M+1$ & $2M$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Computational cost of the LMS algorithm.}
+  \label{tab:comp_cost_lms}
+\end{table}

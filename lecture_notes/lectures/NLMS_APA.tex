@@ -1,0 +1,497 @@
+\chapter{Normalised LMS and Affine Projection Algorithm}
+\label{ch:NLMS_APA}
+\section{Review of the Basics}
+\subsection{Inversion of a 2 by 2 Block Matrix}
+Let $\vect{A}$ and $\vect{M}_1=\vect{D}-\vect{C}\vect{A}^{-1}\vect{B}$ be non-singular matrices. Then
+\bmath
+  \bbmtx
+    \vect{A} & \vect{B}\\
+    \vect{C} & \vect{D}
+  \ebmtx^{-1} =
+  \bbmtx
+    \vect{A}^{-1}+\vect{A}^{-1}\vect{B}\vect{M}_1^{-1}\vect{C}\vect{A}^{-1} & -\vect{A}^{-1}\vect{B}\vect{M}_1^{-1}\\
+    -\vect{M}_1^{-1}\vect{C}\vect{A}^{-1} & \vect{M}_1^{-1}
+  \ebmtx\ .
+  \label{eq:block_inv1}
+\emath
+Let instead $\vect{D}$ and $\vect{M}_2=\vect{A}-\vect{B}\vect{D}^{-1}\vect{C}$ be non-singular matrices. Then
+\bmath
+  \bbmtx
+    \vect{A} & \vect{B}\\
+    \vect{C} & \vect{D}
+  \ebmtx^{-1} =
+  \bbmtx
+    \vect{M}_2^{-1} & -\vect{M}_2^{-1}\vect{B}\vect{D}^{-1}\\
+    -\vect{D}^{-1}\vect{C}\vect{M}_2^{-1} & \vect{D}^{-1}+\vect{D}^{-1}\vect{C}\vect{M}_2^{-1}\vect{B}\vect{D}^{-1}
+  \ebmtx\ .
+  \label{eq:block_inv2}
+\emath
+The matrices $\vect{M}_1$ and $\vect{M}_2$ are said to be the \textit{Schur complement} of $\vect{A}$ and $\vect{D}$, respectively.
+
+\subsection{The Method of Lagrange Multipliers}
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/const_opt}
+  \caption{Optimisation problem with a single equality constraint. The points $\vect{x}_u$ and $\vect{x}_c$ are the unconstrained and the constrained minimum, respectively.}
+  \label{fig:const_opt}
+\end{figure}
+\noindent The method of Lagrange multipliers can be used to solve optimisation problems with equality constraints\footnote{The method of Lagrange multipliers can also be used to solve the more general problem with inequality constraints, but we do not consider this here.}
+\begin{gather}
+  \begin{alignedat}{2}
+      &\underset{\vect{x}}{\text{optimise}} &\quad f(\vect{x}) &\\
+      &\text{subject to}&\quad \vect{h}(\vect{x}) &= \vect{0}
+  \end{alignedat}
+  \label{eq:constr_opt}
+\end{gather}
+Consider the optimisation problem in Fig.~\ref{fig:const_opt} with the cost function $f(\vect{x})$ and the constraints $\vect{h}(\vect{x})=\vect{0}$. At the constrained optimum $\vect{x}_c$, the gradients of $f(\vect{x})$ and $\vect{h}(\vect{x})$ are parallel. Thus,
+\begin{alignat*}{2}
+  \vect{\nabla}f(\vect{x}) &= \lambda \vect{\nabla}h(\vect{x}) &\qquad &\text{(single constraint)}\\
+  \vect{\nabla}f(\vect{x}) &= \sum_{m=1}^M\lambda_m \vect{\nabla}h_m(\vect{x})= \vect{\nabla}\vect{h}(\vect{x})\vect{\lambda} &\qquad &\text{(multiple constraints)}
+\end{alignat*}
+The vector $\vect{\lambda}$ contains the Lagrange multipliers, and they ensure that the gradients have the same direction and length.
+
+If we define the Lagrangian function
+\bmath
+  L(\vect{x},\vect{\lambda}) = f(\vect{x}) - \vect{\lambda}^T\vect{h}(\vect{x})\ ,
+\emath
+then its critical points satisfy
+\begin{alignat}{2}
+  \vect{\nabla}_{\vect{x}} L(\vect{x},\vect{\lambda}) &= \vect{0}\quad\iff&\quad\vect{\nabla}f(\vect{x}) &= \vect{\nabla}\vect{h}(\vect{x})\vect{\lambda}\label{eq:grad_lagr_func}\\
+  \vect{\nabla}_{\vect{\lambda}} L(\vect{x},\vect{\lambda}) &= \vect{0}\quad\iff&\quad\vect{h}(\vect{x}) &= \vect{0}\ .\label{eq:grad_lagr_func_const}
+\end{alignat}
+\eq{eq:grad_lagr_func} is the same as what we previously derived from Fig.~\ref{fig:const_opt}, and \eq{eq:grad_lagr_func_const} is simply the constraints of our optimisation problem. Thus, the solutions to the system of equations given by \eq{eq:grad_lagr_func} and \eq{eq:grad_lagr_func_const} are indeed the critical points of our optimisation problems. In order to find the optimum, we need to classify the critical points as either minimums, maximums, or saddle points. The classification of the critical points for any pair of cost function and constraints is beyond the scope of these lecture notes. We refer the interested reader to \cite[pp.~294--308]{Antoniou2007}. Alternatively, we may formulate the constrained optimisation problem in \eq{eq:constr_opt} as the sequential unconstrained optimisation problem \cite[ch.~5]{Boyd2004}
+\bmath
+  \max_{\vect{\lambda}}\left\{\underset{\vect{x}}{\text{optimise}}\ L(\vect{x},\vect{\lambda}) \right\}\ .
+  \label{eq:constr_opt_nested}
+\emath
+We could solve this optimisation problem by applying the five step recipe for unconstrained optimisation in Sec.~\ref{ssec:optimisation} to first the inner optimisation problem and then the outer optimisation problem.
+
+We are here not concerned with these general methods. Instead, we consider the simpler problem of minimising a quadratic cost function with linear equality constraints.
+
+\subsubsection{Quadratic Cost Function with Linear Equality Constraints}
+We consider the following equality constrained minimisation problem
+\begin{gather}
+  \begin{alignedat}{2}
+      &\min_{\vect{x}} &\quad f(\vect{x}) &= \frac{1}{2}\vect{x}^T\vect{Px}+\vect{q}^T\vect{x}+r\\
+      &\text{subject to}&\quad \vect{h}(\vect{x}) &= \vect{Ax}-\vect{b}=\vect{0}
+  \end{alignedat}
+  \label{eq:constr_opt_quad_lin}
+\end{gather}
+in which the cost function is quadratic and the equality constraints are linear. We assume that $\vect{P}$ is an $N\times N$ p.d. matrix so that $f(\vect{x})$ is a convex function. Moreover, we assume that $\vect{A}$ is a full rank $M\times N$ matrix with $M\leq N$. The Langrangian function is 
+\bmath
+  L(\vect{x},\vect{\lambda}) = \frac{1}{2}\vect{x}^T\vect{Px}+\vect{q}^T\vect{x}+\vect{r} - \vect{\lambda}^T(\vect{Ax}-\vect{b})
+\emath
+and its gradient w.r.t. $\vect{x}$ is
+\bmath
+  \vect{\nabla}_{\vect{x}} L(\vect{x},\vect{\lambda}) = \vect{Px}+\vect{q}-\vect{A}^T\vect{\lambda}\ .
+\emath
+The system of equations given by \eq{eq:grad_lagr_func} and \eq{eq:grad_lagr_func_const} are therefore
+\bmath
+  \bbmtx
+     \vect{P} & -\vect{A}^T\\
+    -\vect{A} &  \vect{0}
+  \ebmtx
+  \bbmtx
+    \vect{x}\\
+    \vect{\lambda}
+  \ebmtx = 
+  \bbmtx
+    -\vect{q}\\
+    -\vect{b}
+  \ebmtx\ .
+\emath
+Since the cost function $f(\vect{x})$ is assumed to be convex, there is only one point satisfying this system of equations. By using the $2\times 2$ block matrix inversion rule in \eq{eq:block_inv1}, we obtain that this point $(\vect{x}_c,\vect{\lambda}_c)$ is
+\begin{align}
+  \vect{\lambda}_c &= (\vect{AP}^{-1}\vect{A}^T)^{-1}(\vect{AP}^{-1}\vect{q}+\vect{b})\label{eq:constr_opt_quad_lin_minlam}\\
+  \vect{x}_c &= \vect{P}^{-1}(\vect{A}^T\vect{\lambda}_c-\vect{q})\ .
+  \label{eq:constr_opt_quad_lin_minx}
+\end{align}
+Thus, the solution to the constrained minimisation problem in \eq{eq:constr_opt_quad_lin} is $\vect{x}_c$ given by \eq{eq:constr_opt_quad_lin_minx}.
+
+\section{Overview over Adaptive Filters based on the Mean-Squared Error Cost Function}
+An overview over the adaptive filters is shown in Fig.~\ref{fig:overview}. Recall that we have the following important properties for the steepest descent algorithm and the stochastic gradient methods.
+\subsubsection{Steepest Descent (SD)}
+\begin{itemize}
+  \item Since the statistics is assumed known, the gradient and filter coefficients are deterministic functions.
+  \item SD is of limited practical usage, but illustrates nicely how adaptive filters function an how they are analysed.
+  \item SD is the "ideal" (first-order) adaptive filter.
+\end{itemize}
+\subsubsection{Stochastic Gradient Methods (SGMs)}
+\begin{itemize}
+  \item Since the statistics is unknown, the gradient and filter coefficients are stochastic processes.
+  \item They are generally easy to implement and hard to analyse.
+  \item They are approximations to the steepest descent algorithm.
+\end{itemize}
+
+\subsection{Model for the Analysis of SGMs}
+\label{ssec:analysis_model}
+In order to make the SGMs easier to analyse, a model is typically assumed for the relationship between the input signal $u(n)$ and the desired signal $d(n)$. Fig.~\ref{fig:sys_id_block_diagram} shows one of the most popular models used for the analysis of adaptive filters.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/sys_id_block_diagram}
+  \caption{Block diagram showing the model used to analyse adaptive filters.}
+  \label{fig:sys_id_block_diagram}
+\end{figure}
+Define
+\begin{align}
+  \vect{w}_o &= \bbmtx w_{o,0} & \cdots & w_{o,M-1} \ebmtx^T\\
+  \vect{w}(n) &= \bbmtx w_0(n) & \cdots & w_{M-1}(n) \ebmtx^T\\
+  \vect{u}(n) &= \bbmtx u(n) & \cdots & u(n-M+1) \ebmtx^T\\
+  \vect{\Delta}\vect{w}(n) &= \vect{w}_o-\vect{w}(n)
+\end{align}
+where $\vect{\Delta}\vect{w}(n)$ is referred to as the weight error.
+\subsubsection{Assumptions}
+From Fig.~\ref{fig:sys_id_block_diagram}, we have that
+\bmath
+  d(n) = z(n)+v(n) = \vect{u}^T(n)\vect{w}_o + v(n)\ .
+\emath
+Moreover, we assume that
+\begin{enumerate}
+  \item $v(n)$ is white noise with variance $\sigma_v^2$.
+  \item $v(n)$ and $u(n)$ are uncorrelated.
+  \item $\vect{u}(n)$ is a white process with correlation matrix $\vect{R}_u$. This assumption implies that $\vect{u}(n)$ and $\vect{w}(n)$ are uncorrelated.
+\end{enumerate}
+\subsubsection{Equations}
+We have that
+  \begin{align}
+    e(n) &= d(n) - y(n) =  v(n) + \vect{u}^T(n)\vect{w}_o - \vect{u}^T(n)\vect{w}(n)\\
+         &= \vect{u}^T(n)\vect{\Delta}\vect{w}(n)+ v(n)
+  \end{align}
+Thus, at the optimum where $\vect{\Delta}\vect{w}(n)=\vect{0}$, we have that
+\bmath
+  J_1(\vect{w}_o) = J_\textup{min} = J_1(v^2(n)) = \sigma_v^2\ .
+\emath
+The cost function can be written as
+\begin{align}
+  J_1(\vect{w}(n)) &= E[e^2(n)] = E[v^2(n)] + E[\vect{\Delta}\vect{w}^T(n)\vect{u}(n)\vect{u}^T(n)\vect{\Delta}\vect{w}(n)]\notag\\
+  &= \sigma_v^2 + E[E[\vect{\Delta}\vect{w}^T(n)\vect{u}(n)\vect{u}^T(n)\vect{\Delta}\vect{w}(n)|\vect{\Delta}\vect{w}(n)]]\notag\\
+  &= J_\textup{min} + E[\vect{\Delta}\vect{w}^T(n)\vect{R}_u\vect{\Delta}\vect{w}(n)]\ .
+\end{align}
+When viewed as a function of $n$, the cost function is called the learning curve.
+
+\subsection{How to Analyse Adaptive Filters}
+Adaptive filters can be analysed in several ways.
+\begin{description}
+  \item[Transient Performance] How does the filter handle an abrupt change in the statistics of $u(n)$, and how fast does it converge to steady-state?
+  \item[Steady-state Performance] How does the filter perform in a WSS environment after all transients have died out?
+  \item[Tracking Performance] How does the filter handle slow variations in the statistics of $u(n)$ and/or $d(n)$?
+  \item[Numerical Precision Effects] What happens when the filter is implemented on a finite precision computer?
+  \item[Computational Complexity] How much processing time does the algorithm require?
+\end{description}
+\subsubsection{Important Values and Functions}
+When analysing adaptive filters, we typically quantify their performance in terms of the following values and functions.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/learning_curve_sgm}
+  \caption{The cost function (same as the MSE), the minimum MSE, and the excess MSE.}
+  \label{fig:learning_curve_sgm}
+\end{figure}
+\begin{alignat}{2}
+  &J_1(\vect{w}(n))  &\quad &\text{(Mean-Square Error (MSE))}\\
+  &J_1(\vect{w}_o) = J_\textup{min} &\quad &\text{(Minimum MSE (MMSE))}\\
+  &J_\textup{ex} = J_1(\vect{w}(\infty))-J_\textup{min} &\quad &\text{(Excess MSE (EMSE))}\\
+  &\mathcal{M} = \frac{ J_\textup{ex}}{J_\textup{min}} &\quad &\text{(Misadjustment)}\\
+  &E[\|\vect{\Delta}\vect{w}(\infty)\|^2]  &\quad &\text{(Mean-Square Deviation (MSD))}\\
+  &\lambda_\textup{max}  &\quad &\text{(Maximum Eigenvalue of $\vect{R}_u$)}\\
+  &\lambda_\textup{min}  &\quad &\text{(Minimum Eigenvalue of $\vect{R}_u$)}\\
+  &\kappa(\vect{R}_u) = \frac{\lambda_\textup{max}}{\lambda_\textup{min}} &\quad &\text{(Condition number of $\vect{R}_u$)}
+\end{alignat}
+In adaptive filtering, some people use the term eigenvalue spread $\chi(\vect{R}_u)$ instead of the condition number. The MSE, the EMSE, the MSD, and the misadjustment depend on the adaptive filtering algorithm. Conversely, the remaining parameters depend on the desired signal and the input signal and are thus independent of the adaptive filtering algorithm. In Fig.~\ref{fig:learning_curve_sgm}, some of the quantities are shown.
+
+\section{LMS Revisited}
+Recall the steepest descent algorithm
+\bmath
+  \vect{w}(n+1) = \vect{w}(n)-\frac{\mu}{2}\vect{g}(\vect{w}(n))
+\emath
+where
+\bmath
+  \vect{g}(\vect{w}(n)) = 2\vect{R}_u\vect{w}(n)-2\vect{r}_{ud} = -2E[\vect{u}(n)e(n)]
+\emath
+is the gradient of $J_1(\vect{w}(n))$. Replacing the gradient with the simple estimate 
+\bmath
+  \hat{\vect{g}}(\vect{w}(n)) = -2\vect{u}(n)e(n)
+\emath
+leads to the LMS algorithm
+\begin{align}
+  \vect{w}(n+1) &= \vect{w}(n) + \mu\vect{u}(n)e(n)\\
+                &= (\vect{I}-\mu\vect{u}(n)\vect{u}^T(n))\vect{w}(n) + \mu\vect{u}(n)d(n)\ .
+\end{align}
+In order to analyse the LMS algorithm, we use the analysis model in Sec.~\ref{ssec:analysis_model}.
+
+\subsection{Transient Analysis}
+We would like that
+\begin{alignat*}{2}
+  \lim_{n\to\infty} E[\Delta\vect{w}(n)] &= 0 &\qquad &\text{(Convergence in mean)}\\
+  \lim_{n\to\infty} E[\|\Delta\vect{w}(n)\|^2] &= c < \infty &\qquad &\text{(Convergence in mean-square)}
+\end{alignat*}
+\subsubsection{Convergence in the Mean}
+We have that
+\bmath
+  \vect{\Delta}\vect{w}(n+1) = (\vect{I}-\mu\vect{u}(n)\vect{u}^T(n))\vect{\Delta}\vect{w}(n) + \mu\vect{u}(n)v(n)
+\emath
+from which we get
+\bmath
+  E[\vect{\Delta}\vect{w}(n+1)] = (\vect{I}-\mu\vect{R}_u)E[\vect{\Delta}\vect{w}(n)]\ .
+\emath
+Thus, the LMS algorithm is stable in the mean if (same as for SD)
+\bmath
+  0 < \mu < \frac{2}{\lambda_\textup{max}}\ .
+\emath
+Since $\lambda_\textup{max}$ is unknown and hard to estimate, we can bound it by
+\bmath
+  \lambda_\textup{max} \leq \textup{tr}(\vect{R}_u) = ME[u^2(n)] \leq M S_\textup{max}\ .
+\emath
+Estimating the power $E[u^2(n)]$ or the maximum is the power spectral density $S_\textup{max}$ is fairly easy.
+
+\subsubsection{Convergence in the Mean-Square}
+We assume that $\vect{u}(n)$ has a Gaussian distribution with zero-mean and covariance matrix $\vect{R}_u$. Then, as we have shown in Appendix~\ref{app:lms_analysis}, we get that the LMS algorithm is stable in the mean-square if the step-size satisfies
+\bmath
+  f(\mu) = \frac{\mu}{2}\sum_{m=1}^M \frac{\lambda_m}{1-\mu\lambda_m} < 1\ .
+\emath
+For small step-sizes $\mu \ll 1/\lambda_\textup{max}$, we have
+\bmath
+  f(\mu) \approx \frac{\mu}{2}\sum_{m=1}^M\lambda_m = \frac{\mu}{2}\tr{\vect{R}_u} < 1\ .
+\emath
+Thus, stability in the mean-square requires that the step-size satisfies
+\bmath
+  0 < \mu < \frac{2}{\tr{\vect{R}_u}}\ .
+\emath
+
+\subsection{Steady-State Analysis}
+From Appendix~\ref{app:lms_analysis}, we have that
+\begin{alignat}{2}
+  &\text{EMSE:}&\quad J_\textup{ex} &= J_1(\vect{w}(\infty))-J_\textup{min} = J_\textup{min}\frac{f(\mu)}{1-f(\mu)}\\
+  & &\quad &\approx \frac{\mu}{2}J_\textup{min}\tr{\vect{R}_u}\\
+  &\text{Misadjustment:}&\quad \mathcal{M} &= \frac{ J_\textup{ex}}{J_\textup{min}} = \frac{f(\mu)}{1-f(\mu)}\\
+  & &\quad &\approx \frac{\mu}{2}\tr{\vect{R}_u}\\
+  &\text{MSD:} &\quad E[\|\vect{\Delta}\vect{w}(\infty)\|^2] &\approx \frac{\mu}{2} J_\textup{min} M
+\end{alignat}
+Here, the approximations are valid for small step-sizes. We see that the EMSE is approximately proportional to the input power. This is a problem and referred to as \textit{gradient noise amplification}.
+
+\section{Normalised LMS Adaptive Filters}
+Recall that we can bound the maximum eigenvalue by
+\bmath
+  \lambda_\textup{max} \leq \textup{tr}(\vect{R}_u) = ME[u^2(n)]\ .
+\emath
+An estimate of the power could be
+\bmath
+  \hat{E}[u^2(n)] = \frac{1}{M}\vect{u}^T(n)\vect{u}(n) = \frac{1}{M}\|\vect{u}(n)\|^2\ .
+\emath
+This leads to the following bound on the step-size
+\bmath
+  0 < \mu < \frac{2}{\|\vect{u}(n)\|^2}\quad\iff\quad 0 < \mu\|\vect{u}(n)\|^2 < 2\ .
+\emath
+We may define the time-varying step-size
+\bmath
+  \mu(n) = \frac{\beta}{\|\vect{u}(n)\|^2}\ ,\qquad 0<\beta<2\ .
+\emath
+Then, the LMS algorithm is
+\bmath
+  \vect{w}(n+1) = \vect{w}(n) + \frac{\beta}{\|\vect{u}(n)\|^2}\vect{u}(n)e(n)
+\emath
+which is called the normalised LMS (NLMS) algorithm. The NLMS bypasses the problem of gradient noise amplification by normalising the gradient estimate by the input power. However, this normalisation causes numerical problems when the input power is close to zero. In order to avoid this, we introduce the regularisation parameter $\epsilon$, which is a small positive constant, into the NLMS algorithm
+\bmath
+  \boxed{\vect{w}(n+1) = \vect{w}(n) + \frac{\beta}{\epsilon+\|\vect{u}(n)\|^2}\vect{u}(n)e(n)}\ .
+\emath
+\subsubsection{Fast Computation}
+The power estimate may be computed very efficiently by writing it in a recursive manner
+\begin{align}
+  \|\vect{u}(n)\|^2 &= \sum_{m=0}^{M-1}u^2(n-m) = u^2(n) - u^2(n-M) + \sum_{m=1}^{M}u^2(n-m)\notag\\
+  &= u^2(n) - u^2(n-M) + \|\vect{u}(n-1)\|^2\ .
+\end{align}
+It should be noted that the use of this recursion can be problematic in practice due to accumulated rounding errors \cite[p.~227]{Sayed2003}. These rounding errors may potentially cause the norm to be negative.
+
+\subsection{Transient Analysis}
+In order to analyse the NLMS algorithm, we use the analysis model in Sec.~\ref{ssec:analysis_model}. If $\sigma_v^2=0$, the NLMS algorithm converges in the mean and the mean-square if \cite[p.~325]{Haykin2001}
+\bmath
+  \boxed{0<\beta<2}\ .
+\emath
+Moreover, the optimal step-size is
+\bmath
+  \beta_o = 1\ .
+\emath
+If $\sigma_v^2>0$, the optimal step-size is more complicated and can be found in \cite[p.~325]{Haykin2001}.
+
+\subsection{Steady-State Analysis}
+Assuming the analysis model in Sec.~\ref{ssec:analysis_model}, it can be shown that \cite[pp.~300--302,p.~474]{Sayed2003}
+\begin{alignat}{2}
+  &\text{EMSE:}&\quad J_\textup{ex} &= J_1(\vect{w}(\infty))-J_\textup{min}\notag\\
+  & &\quad &\approx \frac{\beta}{2} J_\textup{min}\tr{\vect{R}_u}E\left[\frac{1}{\|\vect{u}(n)\|^2}\right]\geq\frac{\beta}{2} J_\textup{min}\\
+  &\text{Misadjustment:}&\quad \mathcal{M} &= \frac{ J_\textup{ex}}{J_\textup{min}} \approx \frac{\beta}{2}\tr{\vect{R}_u}E\left[\frac{1}{\|\vect{u}(n)\|^2}\right]\geq\frac{\beta}{2}\\
+  &\text{MSD:} &\quad E[\|\vect{\Delta}\vect{w}(\infty)\|^2] &\approx \frac{\beta}{2} J_\textup{min} E\left[\frac{1}{\|\vect{u}(n)\|^2}\right] \geq \frac{\beta J_\textup{min}}{2\tr{\vect{R}_u}}
+\end{alignat}
+where the inequality follows from that $E[x^{-1}]\geq E[x]^{-1}$. The approximations are valid for small values of $\beta$ and $\epsilon$. Note that the approximation of the misadjustment no longer depends on the input power. This is a consequence of the normalisation of the LMS gradient with $\|\vect{u}(n)\|^2$. Moreover, it should be noted that there exist several other approximations to the EMSE and the MSD than presented above \cite[p.~474]{Sayed2003}.
+
+\subsection{Computational Cost}
+Table~\ref{tab:comp_cost_nlms} shows the computational cost of the NLMS algorithm in terms of the number of multiplications, additions or subtractions, and divisions. From the table, we see that the total number of flops is $6M+2$. If we use the fast computation of the normalisation constant, the computational cost is reduced to $4M+7$ flops as shown in Table~\ref{tab:comp_cost_nlms_fast}. Thus, the NLMS algorithm has a linear complexity in the filter length $\mathcal{O}(M)$ for both versions of the NLMS algorithm.
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{l c c c}
+    \toprule
+    Term & $\times$ & $+$ or $-$ & $/$ \\
+    \midrule
+    $\|\vect{u}(n)\|^2$ & $M$ & $M-1$ & \\
+    $\vect{u}^T(n)\vect{w}(n)$ & $M$ & $M-1$ & \\
+    $e(n)=d(n)-\vect{u}^T(n)\vect{w}(n)$ & & $1$ & \\
+    $\beta e(n)/(\epsilon+\|\vect{u}(n)\|^2)$ & $1$ & $1$ & $1$\\
+    $\beta\vect{u}(n)e(n)/(\epsilon+\|\vect{u}(n)\|^2)$ & $M$ & & \\
+    $\vect{w}(n)+\beta \vect{u}(n)e(n)/(\epsilon+\|\vect{u}(n)\|^2)$ &  & $M$ &\\
+    \midrule
+    Total & $3M+1$ & $3M$ & $1$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Computational cost of the NLMS algorithm.}
+  \label{tab:comp_cost_nlms}
+\end{table}
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{l c c c}
+    \toprule
+    Term & $\times$ & $+$ or $-$ & $/$ \\
+    \midrule
+    $\|\vect{u}(n)\|^2$ & 2 & 2 & \\
+    $\vect{u}^T(n)\vect{w}(n)$ & $M$ & $M-1$ & \\
+    $e(n)=d(n)-\vect{u}^T(n)\vect{w}(n)$ & & $1$ & \\
+    $\beta e(n)/(\epsilon+\|\vect{u}(n)\|^2)$ & $1$ & $1$ & $1$\\
+    $\beta\vect{u}(n)e(n)/(\epsilon+\|\vect{u}(n)\|^2)$ & $M$ & & \\
+    $\vect{w}(n)+\beta \vect{u}(n)e(n)/(\epsilon+\|\vect{u}(n)\|^2)$ &  & $M$ & \\
+    \midrule
+    Total & $2M+3$ & $2M+3$ & $1$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Computational cost of the NLMS algorithm with fast update of the normalisation factor.}
+  \label{tab:comp_cost_nlms_fast}
+\end{table}
+
+\subsection{Another Derivation of the NLMS Algorithm}
+We have two requirements to the adaptive filter.
+\begin{enumerate}
+  \item If we filter the input sample at time $n$ through the filter at time $n+1$, the error should be zero. That is,
+  \bmath
+    d(n) - \vect{u}^T(n)\vect{w}(n+1) = 0\ .
+  \emath
+  There are an infinite number of solutions that satisfy this requirement if $M>1$.
+  \item Among all the filter coefficient vectors $\vect{w}(n+1)$ satisfying the first requirements, we select the vector resulting in the smallest change from iteration $n$ to $n+1$. That is, $\|\vect{w}(n+1)-\vect{w}(n)\|^2$ should be as small as possible.
+\end{enumerate}
+These two requirements lead to the following constrained minimisation problem
+\begin{gather}
+  \begin{alignedat}{2}
+      &\min_{\mathclap{\vect{w}(n+1)}} &\quad f(\vect{w}(n+1))&=\|\vect{w}(n+1)-\vect{w}(n)\|^2\\
+      &\text{s.t.}&\quad h(\vect{w}(n+1)) &= d(n) - \vect{u}^T(n)\vect{w}(n+1) = 0
+  \end{alignedat}
+  \label{eq:nlms_opt}
+\end{gather}
+This optimisation problem has a quadratic cost function and a single linear equality constraint, and it is therefore on the same form as \eq{eq:constr_opt_quad_lin} with
+\begin{align}
+  \vect{x} &= \vect{w}(n+1)\\
+  \vect{A} &= -\vect{u}^T(n)\\
+  \vect{b} &= -d(n)\\
+  \vect{P} &= 2\vect{I}\\
+  \vect{q} &= -2\vect{w}(n)\\
+  \vect{r} &= \|\vect{w}(n)\|^2\ .
+\end{align}
+Thus, from \eq{eq:constr_opt_quad_lin_minlam} and \eq{eq:constr_opt_quad_lin_minx}, we readily obtain the solution to the optimisation problem in \eq{eq:nlms_opt}. The solution is given by
+\begin{align}
+  \lambda &= -\frac{2}{\|\vect{u}(n)\|^2}e(n)\\
+  \vect{w}(n+1) &= \vect{w}(n)+\frac{1}{\|\vect{u}(n)\|^2}\vect{u}(n)e(n)\ .
+\end{align}
+The last equation is identical to the NLMS algorithm with $\beta=1$ and $\epsilon=0$.
+
+\section{Affine Projection Adaptive Filters}
+We may extend the requirements to the adaptive filter in the following way.
+\begin{enumerate}
+  \item If we filter the input sample at time $n-k$ for $k=0,1,\ldots,K-1<M$ through the filter at time $n+1$, the corresponding errors should be zero. That is,
+  \bmath
+    d(n-k) - \vect{u}^T(n-k)\vect{w}(n+1) = 0\ ,\quad k=0,1,\ldots,K-1<M\ .
+  \emath
+  If we define
+  \begin{align}
+    \vect{U}(n) &= \bbmtx\vect{u}(n) & \vect{u}(n-1) & \cdots & \vect{u}(n-K+1)\ebmtx\\
+    \vect{d}(n) &= \bbmtx d(n) & d(n-1) & \cdots & d(n-K+1)\ebmtx^T\ ,
+  \end{align}
+  we may write
+  \bmath
+    \vect{d}(n)-\vect{U}^T(n)\vect{w}(n+1) = \vect{0}\ .
+  \emath
+  If $K=M$ and $\vect{U}(n)$ has full rank, there is only one filter coefficient vector $\vect{w}(n+1)$ satisfying this requirement. It is given by
+  \bmath
+    \vect{w}(n+1) = \vect{U}^{-T}(n)\vect{d}(n)\ .
+  \emath
+  When this is not the case, there are an infinite number of solutions that satisfy this requirement, and we therefore need a second requirement.
+  \item Among all the filter coefficient vectors $\vect{w}(n+1)$ satisfying the first requirements, we select the vector resulting in the smallest change from iteration $n$ to $n+1$. That is, $\|\vect{w}(n+1)-\vect{w}(n)\|^2$ should be as small as possible.
+\end{enumerate}
+Note that for $K=1$, the requirements are identical to the requirements leading to the NLMS algorithm. The affine projections algorithm (APA) can therefore be viewed as a generalisation of the NLMS algorithm. We may formulate the requirements as a constrained optimisation problem
+\begin{gather}
+  \begin{alignedat}{2}
+      &\min_{\mathclap{\vect{w}(n+1)}} &\quad f(\vect{w}(n+1)) &=\|\vect{w}(n+1)-\vect{w}(n)\|^2\\
+      &\text{s.t.}&\quad \vect{h}(\vect{w}(n+1)) &=  \vect{d}(n)-\vect{U}^T(n)\vect{w}(n+1) = \vect{0}
+  \end{alignedat}
+  \label{eq:apa_opt}
+\end{gather}
+This optimisation problem has a quadratic cost function and $K\leq M$ linear equality constraints, and it is therefore on the same form as \eq{eq:constr_opt_quad_lin} with
+\begin{align}
+  \vect{x} &= \vect{w}(n+1)\\
+  \vect{A} &= -\vect{U}^T(n)\\
+  \vect{b} &= -\vect{d}(n)\\
+  \vect{P} &= 2\vect{I}\\
+  \vect{q} &= -2\vect{w}(n)\\
+  \vect{r} &= \|\vect{w}(n)\|^2\ .
+\end{align}
+Thus, from \eq{eq:constr_opt_quad_lin_minlam} and \eq{eq:constr_opt_quad_lin_minx}, we readily obtain the solution to the optimisation problem in \eq{eq:apa_opt}. The solution is given by
+\begin{align}
+  \vect{\lambda} &= -2\left(\vect{U}^T(n)\vect{U}(n)\right)^{-1}\vect{e}(n)\\
+  \vect{w}(n+1) &= \vect{w}(n)+\vect{U}(n)\left(\vect{U}^T(n)\vect{U}(n)\right)^{-1}\vect{e}(n)\ .
+\end{align}
+
+From this result, we see that the APA reduces to the NLMS algorithm for $K=1$. Usually, we add a regularisation parameter $\epsilon$ and a step-size parameter $\beta$ to the algorithm and obtain
+\bmath
+  \boxed{\vect{w}(n+1) = \vect{w}(n)+\beta\vect{U}(n)\left(\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n)\right)^{-1}\vect{e}(n)}\ .
+\emath
+As for the NLMS algorithm, $\epsilon$ is a small positive value which bypasses numerical problems when $\vect{U}^T(n)\vect{U}(n)$ is ill-conditioned.
+
+For $K>1$, The computational complexity of the APA is higher than that of the NLMS algorithm since we have to invert a $K\times K$ matrix. Although there exist fast ways of doing this \cite[pp.~339--340]{Haykin2001}, the APA is more expensive than the NLMS algorithm.
+
+\subsection{Transient Analysis}
+In order to analyse the APA, we use the analysis model in Sec.~\ref{ssec:analysis_model}. If $\sigma_v^2=0$, the APA converges in the mean and the mean-square if \cite[p.~337]{Haykin2001}
+\bmath
+  \boxed{0<\beta<2}\ .
+\emath
+Moreover, the optimal step-size is
+\bmath
+  \beta_o = 1\ .
+\emath
+If $\sigma_v^2>0$, the optimal step-size is more complicated and can be found in \cite[p.~337]{Haykin2001}.
+
+\subsection{Steady-State Analysis}
+Assuming the analysis model in Sec.~\ref{ssec:analysis_model}, it can be shown that \cite[p.~327]{Sayed2003}
+\begin{alignat}{2}
+  &\text{EMSE:}&\quad J_\textup{ex} &= J_1(\vect{w}(\infty))-J_\textup{min}\notag\\
+  & &\quad &\approx \frac{\beta}{2} J_\textup{min}\tr{\vect{R}_u}E\left[\frac{K}{\|\vect{u}(n)\|^2}\right]\geq\frac{\beta}{2} J_\textup{min}K\\
+  &\text{Misadjustment:}&\quad \mathcal{M} &= \frac{ J_\textup{ex}}{J_\textup{min}} \approx \frac{\beta}{2}\tr{\vect{R}_u}E\left[\frac{K}{\|\vect{u}(n)\|^2}\right]\geq\frac{\beta K}{2}
+\end{alignat}
+where the inequality follows from that $E[x^{-1}]\geq E[x]^{-1}$. The approximations are valid for small values of $\beta$ and $\epsilon$. It should be noted that there exist several other approximations to the EMSE than presented above \cite[p.~325]{Sayed2003}. For more accurate expressions and for an expression for the mean-square deviation, see \cite[pp.~510--512]{Sayed2003} and \cite{Shin2004}.
+
+\subsection{Computational Cost}
+Table~\ref{tab:comp_cost_apa} shows the computational cost of the APA algorithm in terms of the number of multiplications and additions or subtractions. We have assumed that the cost of inverting a $K\times K$ matrix is $K^3$ multiplications and additions \cite[p.~240]{Sayed2003}. From the table, we see that the total number of flops is $2M(K^2+2K)+2K^3+K^2+M$. Thus, the APA has a complexity of $\mathcal{O}(MK^2)$. Note that there exist faster ways of implementing the APA \cite[pp.~339-340]{Haykin2001}.
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{@{}l c c c@{}}
+    \toprule
+    Term & $\times$ & $+$ or $-$ \\
+    \midrule
+    $\vect{U}^T(n)\vect{w}(n)$ & $MK$ & $(M-1)K$ \\
+    $\vect{e}(n)=\vect{d}(n)-\vect{U}^T(n)\vect{w}(n)$ & & $K$ \\
+    $\vect{U}^T(n)\vect{U}(n)$ & $MK^2$ & $(M-1)K^2$ \\
+    $\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n)$ & & $K$ \\
+    $(\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n))^{-1}$ & $K^3$ & $K^3$ \\
+    $(\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n))^{-1}\vect{e}(n)$ & $K^2$ & $K(K-1)$ \\
+    $\vect{U}(n)(\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n))^{-1}\vect{e}(n)$ & $MK$ & $M(K-1)$ \\
+    $\beta\vect{U}(n)(\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n))^{-1}\vect{e}(n)$ & $M$ &  \\
+    $\vect{w}(n)+\beta\vect{U}(n)(\epsilon\vect{I}+\vect{U}^T(n)\vect{U}(n))^{-1}\vect{e}(n)$ &  & $M$\\
+    \midrule
+    Total & $M(K^2+2K+1)+K^3+K^2$ & $M(K^2+2K)+K^3$\\
+    \bottomrule
+  \end{tabular}
+  \caption{Computational cost of the APA.}
+  \label{tab:comp_cost_apa}
+\end{table}

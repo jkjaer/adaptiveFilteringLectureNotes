@@ -1,0 +1,344 @@
+%mainfile: ../lecture_notes.tex
+\chapter{Recursive Least-Squares Adaptive Filters}
+\label{ch:RLS}
+\section{Review of the Basics}
+\subsection{The Matrix Inversion Lemma}
+\label{sec:woodbury}
+Let $\vect{X}$, $\vect{Y}$, $\vect{X}+\vect{UYV}$, and $\vect{Y}^{-1}+\vect{VX}^{-1}\vect{U}$ all be non-singular matrices. By equating element $(1,1)$ of the two block matrices in \eq{eq:block_inv1} and \eq{eq:block_inv2} and setting
+\begin{align}
+  \vect{X} &= \vect{A}\\
+  \vect{U} &= \vect{B}\\
+  \vect{V} &= \vect{C}\\
+  \vect{Y} &= -\vect{D}^{-1}\ ,
+\end{align}
+we obtain the matrix inversion lemma
+\bmath
+  (\vect{X}+\vect{UYV})^{-1} = \vect{X}^{-1}-\vect{X}^{-1}\vect{U}(\vect{Y}^{-1}+\vect{VX}^{-1}\vect{U})^{-1}\vect{V}\vect{X}^{-1}\ .
+  \label{eq:woodbury}
+\emath
+The matrix inversion lemma is also sometimes called the \textit{Woodbury matrix identity} or the \textit{Woodbury's identity}.
+
+\section{Method of Least-Squares}
+The adaptive filtering problem is shown in Fig.~\ref{fig:nonwss_block_diagram2}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/nonwss_block_diagram}
+  \caption{Block diagram of adaptive filtering in a non-WSS environment.}
+  \label{fig:nonwss_block_diagram2}
+\end{figure}
+From the figure, we have that
+\begin{itemize}
+  \item[$u(n)$:] zero-mean input signal
+  \item[$w_m(n)$:] $M$-tap FIR-filter with impulse response $w_0(n),w_1(n),\ldots,w_{M-1}(n)$
+  \item[$y(n)$:] output signal given by $y(n) = \sum_{m=0}^{M-1}w_m(n) u(n-m)$
+  \item[$d(n)$:] zero-mean desired signal
+  \item[$e(n)$:] error signal
+\end{itemize}
+Define
+\begin{align}
+  \vect{w}(n) &= \bbmtx w_0(n) & w_{1}(n) & \cdots & w_{M-1}(n)\ebmtx^T\\
+  \vect{u}(n)&= \bbmtx u(n) & u(n-1) & \cdots & u(n-M+1)\ebmtx^T\ .
+\end{align}
+For $i=1,2,\ldots,n$ with $n\geq M$, define
+\begin{align}
+  \vect{A}(n) &= \bbmtx \vect{u}(1) & \vect{u}(2) & \cdots & \vect{u}(n)\ebmtx^T\\
+  \vect{d}(n) &= \bbmtx d(1) & d(2) & \cdots & d(n)\ebmtx^T\\
+  \vect{e}(n) &= \bbmtx e(1) & e(2) & \cdots & e(n)\ebmtx^T\ .
+\end{align}
+Then
+\bmath
+  \vect{e}(n) = \vect{d}(n)-\vect{A}(n)\vect{w}(n)\quad\iff\quad\vect{d}(n)=\vect{A}(n)\vect{w}(n)+\vect{e}(n)\ .
+\emath
+Note that we have made $\vect{A}(n)$, $\vect{d}(n)$, and $\vect{e}(n)$ time-dependent in order to emphasise that we are here concerned with an online algorithm. Therefore, we also formulate the squared error cost function $J_2(\vect{w}(n))$ in a slightly different way compared to \eq{eq:cf_squared_error}. Here, we define it as
+\bmath
+  J_2(\vect{w}(n)) = \sum_{i=1}^{n}e^2(i)=\vect{e}^T(n)\vect{e}(n)\ .
+\emath
+
+In the method of least-squares, we wish to minimise $J_2(\vect{w}(n))$ which we can write as
+\begin{align}
+  J_2(\vect{w}(n)) &= \vect{e}^T(n)\vect{e}(n) = (\vect{d}(n)-\vect{A}(n)\vect{w}(n))^T(\vect{d}(n)-\vect{A}(n)\vect{w}(n))\notag\\
+  &= \vect{d}^T(n)\vect{d}(n)+\vect{w}^T(n)\vect{A}^T(n)\vect{A}(n)\vect{w}(n)-2\vect{w}^T(n)\vect{A}^T(n)\vect{d}(n)\ .
+\end{align}
+The minimiser
+\bmath
+  \vect{w}_o(n) = (\vect{A}^T(n)\vect{A}(n))^{-1}\vect{A}^T(n)\vect{d}(n)
+\emath
+is referred to as the least-squares solution, and it is the unique solution to the normal equations
+\bmath
+  \vect{A}^T(n)\vect{A}(n)\vect{w}(n) = \vect{A}^T(n)\vect{d}(n)\ ,
+\emath
+provided that $\vect{A}(n)$ has full rank.
+
+\subsection{Weighted Least-Squares}
+When the statistics of $u(n)$ and/or $d(n)$ is time dependent, the minimisation of the squared error $J_2(\vect{w}(n))$ may fail to give a good estimate at time $n$ since all data affect the value of $J_2(\vect{w}(n))$ with the same weight. Ideally, we would like that the new data are assigned a larger weight than the old data. In order to do this, we reformulate $J_2(\vect{w}(n))$ as a weighted cost function
+\bmath
+  J_\beta(\vect{w}(n)) = \sum_{i=1}^{n}\beta(n,i) e^2(i) = \vect{e}^T(n)\vect{B}(n) \vect{e}(n)
+\emath
+where $\beta(n,i)$ contains the weight pertaining to the $i$'th error at time $n$, and $\vect{B}(n)$ is a diagonal matrix given by
+\bmath
+  \vect{B}(n) = \diag{\beta(n,1), \beta(n,2), \ldots , \beta(n,n)}\ .
+\emath
+We use the five step recipe in Sec.~\ref{ssec:optimisation} to minimise $J_\beta(\vect{w}(n))$ w.r.t $\vect{w}(n)$.
+\begin{enumerate}
+  \item Construct the cost function
+  \begin{align}
+    J_\beta(\vect{w}(n)) &= \vect{e}^T(n)\vect{B}(n) \vect{e}(n) = (\vect{d}(n)-\vect{A}(n)\vect{w}(n))^T\vect{B}(n)(\vect{d}(n)-\vect{A}(n)\vect{w}(n))\notag\\
+    &= \vect{d}(n)^T\vect{B}(n)\vect{d}(n)+\vect{w}^T(n)\vect{\Phi}(n)\vect{w}(n)-2\vect{w}^T(n)\vect{\varphi}(n)
+  \end{align}
+  where we have defined $\vect{\Phi}(n)$ and $\vect{\varphi}(n)$ as
+\begin{align}
+  \vect{\Phi}(n) &= \vect{A}^T(n)\vect{B}(n)\vect{A}(n)\\
+  \vect{\varphi}(n) &= \vect{A}^T(n)\vect{B}(n)\vect{d}(n)\ .
+\end{align}
+We refer to $\vect{\Phi}(n)$ and $\vect{\varphi}(n)$ as the correlation matrix and the cross-correlation vector, respectively, since they are scaled and weighted estimates of $\vect{R}_u$ and $\vect{r}_{ud}$.
+  \item Find the gradient
+  \bmath
+    \vect{g}(\vect{w}(n)) = (\vect{\Phi}(n)+\vect{\Phi}^T(n))\vect{w}(n)-2\vect{\varphi}(n)=2\vect{\Phi}(n)\vect{w}(n)-2\vect{\varphi}(n)
+  \emath
+  \item Solve $\vect{g}(\vect{w}(n))=\vect{0}$ for $\vect{w}(n)$
+  \begin{alignat}{3}
+    &&\qquad \vect{g}(\vect{w}(n)) &= \mathrlap{2\vect{\Phi}(n)\vect{w}(n)-2\vect{\varphi}(n)}\notag\\
+    \ArrowBetweenLines
+    &&\qquad \alignedbox{\vect{\Phi}(n)\vect{w}(n)}{=\vect{\varphi}(n)}  &\qquad &\text{(Weighted Normal Equations)}\\
+    \ArrowBetweenLines
+    &&\qquad           \vect{w}_o(n) &= \vect{\Phi}^{-1}(n)\vect{\varphi}(n) &\qquad &\text{(If }\vect{\Phi}(n)\text{ is invertible)}
+  \end{alignat}
+  \item Find the Hessian
+  \bmath
+    \vect{H}(\vect{w}) = 2\vect{\Phi}(n)
+  \emath
+  which is p.d. for all $\vect{w}(n)$ if $\vect{A}(n)$ has full rank and $\beta(n,i)>0$ for all $n\geq i > 0$.
+  \item This implies that
+  \begin{itemize}
+    \item $J_\beta(\vect{w}(n))$ is a convex function, and
+    \item $\vect{w}_o(n) = \vect{\Phi}^{-1}(n)\vect{\varphi}(n)$ is the global minimiser.
+  \end{itemize}
+\end{enumerate}
+The solution $\vect{w}_o(n)$ is often referred to as the weighted least-squares solution.
+
+\subsubsection{Estimation of the (Cross-)Correlation}
+Comparing the weighted normal equations with the Wiener-Hopf equations, we see that
+\begin{align}
+  \hat{\vect{R}}_u(n) &= c(n,\beta)\vect{\Phi}(n) = c(n,\beta)\vect{A}^T(n)\vect{B}(n)\vect{A}(n) = c(n,\beta)\sum_{i=1}^{n}\beta(n,i)\vect{u}(i)\vect{u}^T(i)\label{eq:wls_Ru_est}\\
+  \hat{\vect{r}}_{ud}(n) &= c(n,\beta)\vect{\varphi}(n) = c(n,\beta)\vect{A}^T(n)\vect{B}(n)\vect{d}(n) = c(n,\beta)\sum_{i=1}^{n}\beta(n,i)\vect{u}(i)d(i)\label{eq:wls_rud_est}
+\end{align}
+are the estimates of the correlation matrix and the cross-correlation vector, respectively. The constant $c(n,\beta)$ depends on $n$ and the weighting function $\beta(n,i)$, and it can be selected such that $\hat{\vect{R}}_u(n)$ and $\hat{\vect{r}}_{ud}(n)$ are unbiased estimates of $\vect{R}_u(n)$ and $\vect{r}_{ud}(n)$.
+
+\subsection{Weight Functions}
+We consider three simple weight functions.
+
+\subsubsection{Growing Window Weight Function}
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/growing_window}
+  \caption{The growing window weight function.}
+  \label{fig:growing_window}
+\end{figure}
+\noindent If we select the weight function as
+\bmath
+  \beta(n,i) =
+  \begin{cases}
+    1 & 0 < i \leq n\\
+    0 & \text{otherwise}
+  \end{cases}\ ,
+\emath
+we obtain the growing window weight function, and it is sketched in Fig.~\ref{fig:growing_window}. Selecting the growing window weight function reduces the weighted least-squares problem to the standard least-squares problem. In order to obtain unbiased estimates of $\vect{R}_u(n)$ and $\vect{r}_{ud}(n)$ in \eq{eq:wls_Ru_est} and \eq{eq:wls_rud_est}, respectively, we have to use
+\bmath
+  c(n,\beta) = \frac{1}{n}\ .
+\emath
+
+\subsubsection{Sliding Window Weight Function}
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/sliding_window}
+  \caption{The sliding window weight function.}
+  \label{fig:sliding_window}
+\end{figure}
+\noindent  If we select the weight function as
+\bmath
+  \beta(n,i) =
+  \begin{cases}
+    1 & n-L < i \leq n\\
+    0 & \text{otherwise}
+  \end{cases}
+\emath
+for $0 < L \leq n$, we obtain the sliding window weight function, and it is sketched in Fig.~\ref{fig:sliding_window}. If we select $L=n$, the sliding window weight function reduces to the growing window weight function. In order to obtain unbiased estimates of $\vect{R}_u(n)$ and $\vect{r}_{ud}(n)$ in \eq{eq:wls_Ru_est} and \eq{eq:wls_rud_est}, respectively, we have to use
+\bmath
+  c(n,\beta) = \frac{1}{L}\ .
+\emath
+
+\subsubsection{Exponential Weight Function}
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/exponential_window}
+  \caption{The exponential weight function.}
+  \label{fig:exponential_window}
+\end{figure}
+\noindent If we select the weight function as
+\bmath
+  \beta(n,i) =
+  \begin{cases}
+    \lambda^{n-i} & 0 < i \leq n\\
+    0 & \text{otherwise}
+  \end{cases}
+\emath
+for $0<\lambda\leq 1$, we obtain the exponential weight function, and it is sketched in Fig.~\ref{fig:exponential_window}. The parameter $\lambda$ is called \textit{the forgetting factor}. If we select $\lambda=1$, the exponential weight function reduces to the growing window weight function. In order to obtain unbiased estimates of $\vect{R}_u(n)$ and $\vect{r}_{ud}(n)$ in \eq{eq:wls_Ru_est} and \eq{eq:wls_rud_est}, respectively, we have to use
+\bmath
+  c(n,\beta) = 
+  \begin{cases}
+    \displaystyle\frac{1-\lambda}{1-\lambda^n} & 0<\lambda< 1\\
+    \displaystyle\frac{1}{n} & \lambda=1
+  \end{cases}\ .
+\emath
+
+
+\section{The Recursive Least-Squares Algorithm with an Exponential Weight Function}
+In an online algorithm, we have to solve the weighted normal equations
+\bmath
+  \vect{\Phi}(n)\vect{w}(n) = \vect{\varphi}(n)
+\emath
+for $\vect{w}(n)$ at every time index $n$. However, solving this equation directly as
+\bmath
+  \vect{w}(n) = \vect{\Phi}^{-1}(n)\vect{\varphi}(n)
+\emath
+yields a high computational complexity of the algorithm for the following two reasons.
+\begin{enumerate}
+  \item The matrices $\vect{A}(n)$ and $\vect{B}(n)$, and the vector $\vect{d}(n)$ grows with $n$. Computing $\vect{\Phi}(n)$ and $\vect{\varphi}(n)$ directly would therefore be infeasible for an online algorithm, unless we use a weight function with a finite duration window.
+  \item For an $M$-tap FIR filter, it requires in the order of $\mathcal{O}(M^3)$ operations to solve the normal equations for the filter coefficient vector $\vect{w}(n)$.
+\end{enumerate}
+The recursive least-squares (RLS) algorithm bypasses these two problems. Below, we consider how this is obtained for an exponential weight function, which is the most common weight function.
+
+\subsubsection{Recursive Computation of $\vect{\Phi}(n)$ and $\vect{\varphi}(n)$}
+We may compute the correlation matrix recursively by rewriting it as
+\begin{align}
+  \vect{\Phi}(n) &= \vect{A}^T(n)\vect{B}(n)\vect{A}(n) = \sum_{i=1}^{n}\lambda^{n-i}\vect{u}(i)\vect{u}^T(i)\\
+  &= \lambda^0 \vect{u}(n)\vect{u}^T(n) + \sum_{i=1}^{n-1}\lambda^{n-i}\vect{u}(i)\vect{u}^T(i) = \vect{u}(n)\vect{u}^T(n) + \lambda\sum_{i=1}^{n-1}\lambda^{n-1-i}\vect{u}(i)\vect{u}^T(i)\notag\\
+  &= \vect{u}(n)\vect{u}^T(n) + \lambda\vect{\Phi}(n-1)\ .
+  \label{eq:rls_corr_recurs}
+\end{align}
+Similarly, we may compute the cross-correlation vector recursively by rewriting it as
+\begin{align}
+  \vect{\varphi}(n) &= \vect{A}^T(n)\vect{B}(n)\vect{d}(n) = \sum_{i=1}^{n}\lambda^{n-i}\vect{u}(i)d(i)\\
+  &= \lambda^0 \vect{u}(n)d(n) + \sum_{i=1}^{n-1}\lambda^{n-i}\vect{u}(i)d(i) = \vect{u}(n)d(n) + \lambda\sum_{i=1}^{n-1}\lambda^{n-1-i}\vect{u}(i)d(i)\notag\\
+  &= \vect{u}(n)d(n) + \lambda\vect{\varphi}(n-1)\ .
+\end{align}
+These recursive formulations of the correlation matrix and the cross-correlation vector clearly reduce the computational complexity and are suitable to use in an online algorithm.
+
+\subsubsection{Inversion of $\vect{\Phi}(n)$}
+For the inversion of the correlation matrix, we use the matrix inversion lemma stated in Sec.~\ref{sec:woodbury}. Comparing the recursive formulation of the correlation matrix in \eq{eq:rls_corr_recurs} with the left side of \eq{eq:woodbury}, we obtain
+\begin{align}
+  \vect{X} &= \lambda\vect{\Phi}(n-1)\\
+  \vect{U} &= \vect{u}(n)\\
+  \vect{V} &= \vect{u}^T(n)\\
+  \vect{Y} &= 1\ .
+\end{align}
+Thus, invoking the matrix inversion lemma, we have that
+\bmath
+  \vect{\Phi}^{-1}(n) = \lambda^{-1}\vect{\Phi}^{-1}(n-1)-\lambda^{-2}\frac{\vect{\Phi}^{-1}(n-1)\vect{u}(n)\vect{u}^T(n)\vect{\Phi}^{-1}(n-1)}{1+\lambda^{-1}\vect{u}^T(n)\vect{\Phi}^{-1}(n-1)\vect{u}(n)}\ .
+  \label{eq:rls_inv_phi}
+\emath
+Note that the computational complexity of the right side of the equation is much lower than that of the left side of the equation when $\vect{\Phi}^{-1}(n-1)$ is known. In order to simplify the notation, we define
+\begin{alignat}{2}
+  \vect{P}(n) &= \vect{\Phi}^{-1}(n)&\quad&\text{(inverse correlation matrix)}\\
+  \vect{k}(n) &= \frac{\vect{P}(n-1)\vect{u}(n)}{\lambda+\vect{u}^T(n)\vect{P}(n-1)\vect{u}(n)}&\quad&\text{(gain vector)}
+\end{alignat}
+which leads to that we may write \eq{eq:rls_inv_phi} as
+\bmath
+  \vect{P}(n) = \lambda^{-1}\left[\vect{P}(n-1)-\vect{k}(n)\vect{u}^T(n)\vect{P}(n-1)\right]\ .
+\emath
+By rearranging the expression for the gain vector, we obtain
+\begin{align}
+  \vect{k}(n) &= \lambda^{-1}\left[\vect{P}(n-1)-\vect{k}(n)\vect{u}^T(n)\vect{P}(n-1)\right] \vect{u}(n)\notag\\
+  &= \vect{P}(n)\vect{u}(n)\ .
+\end{align}
+
+\subsubsection{Recursive computation of $\vect{w}(n)$}
+We can now develop the recursive update equation of the filter coefficient vector. We have that
+\begin{align}
+  \vect{w}(n) &= \vect{P}(n)\vect{\varphi}(n)\\
+  &= \vect{P}(n)\left[\vect{u}(n)d(n) + \lambda\vect{\varphi}(n-1)\right]=\lambda\vect{P}(n)\vect{P}^{-1}(n-1)\vect{w}(n-1)+\vect{k}(n)d(n)\notag\\
+  &= \left[\vect{P}(n-1)-\vect{k}(n)\vect{u}^T(n)\vect{P}(n-1)\right]\vect{P}^{-1}(n-1)\vect{w}(n-1)+\vect{k}(n)d(n)\notag\\
+  &= \vect{w}(n-1)-\vect{k}(n)\vect{u}^T(n)\vect{w}(n-1)+\vect{k}(n)d(n)\notag\\
+  &= \vect{w}(n-1)+\vect{k}(n)\xi(n)
+\end{align}
+where we have defined the a priori error as
+\bmath
+  \xi(n) = d(n)-\vect{u}^T(n)\vect{w}(n-1)\ .
+\emath
+
+\subsubsection{The RLS Algorithm}
+The RLS algorithm may now be formulated as the following set of equations
+\begin{align}
+  \vect{\pi}(n) &= \vect{P}(n-1)\vect{u}(n)\\
+  \vect{k}(n) &= \frac{\vect{\pi}(n)}{\lambda+\vect{u}^T(n)\vect{\pi}(n)}\\
+  \xi(n) &= d(n)-\vect{u}^T(n)\vect{w}(n-1)\\
+  \vect{w}(n) &= \vect{w}(n-1)+\vect{k}(n)\xi(n)\\
+  \vect{P}(n) &= \lambda^{-1}\left[\vect{P}(n-1)-\vect{k}(n)\vect{\pi}^T(n)\right]\ .
+\end{align}
+For an $M$-tap FIR filter, it requires in the order of $\mathcal{O}(M^2)$ operations to run one iteration of the RLS algorithm.
+
+\subsubsection{Initialisation}
+In order to start the RLS algorithm, we need to select values for the initial inverse correlation matrix $\vect{P}(0)$, the initial filter coefficient vector $\vect{w}(0)$, and the input samples $u(n)$ for $n=-M+1,-M+2,\ldots,1$. Typically, we assume that
+\begin{align}
+  \vect{P}(0) &= \delta^{-1}\vect{I}\\
+  \vect{w}(0) &= \vect{0}\\
+  u(n) & = 0\ ,\quad\text{for } -M+1<n<1\ .
+\end{align}
+The first assumption implies that we assume that $\vect{u}(n)$ for $n<1$ is a white random process with covariance matrix $\delta\vect{I}$. The value of $\delta$ should reflect the SNR of the input data with $\delta$ being small for a high SNR and $\delta$ being large for a low SNR \cite[pp.~444--446]{Haykin2001}. This assumption introduces bias into the correlation matrix $\vect{\Phi}(n)$. However, this bias decreases to zero for an increasing $n$. An alternative initialisation, which does not introduce bias, is to estimate the correlation matrix and the cross-correlation vector as \cite[pp.~545--546]{Hayes1996}
+\begin{align}
+  \vect{P}(0) &= \left[\sum_{i=-M+1}^{0}\lambda^{-i}\vect{u}(i)\vect{u}^T(i)\right]^{-1}\\
+  \vect{\varphi}(0) &= \sum_{i=-M+1}^{0}\lambda^{-i}\vect{u}(i)\vect{d}(i)
+\end{align}
+prior to starting the RLS algorithm at time $n=1$. The initial value of the filter coefficient vector can be set to $\vect{w}(0)=\vect{P}(0)\vect{\varphi}(0)$. Note, that this approach requires that we know the input signal from time $n=-2M+2$ and the desired signal from time $n=-M+2$. 
+
+\subsection{Selection of the Forgetting Factor}
+At time $n$, the memory of the sliding window RLS algorithm is the $L$ newest samples indexed by $n-L+1,\ldots, n$. For the exponentially weighted RLS algorithm, the memory is controlled by the forgetting factor $\lambda$. Whereas the interpretation of $L$ is simple, the corresponding interpretation of $\lambda$ is not that intuitive when we have to investigate the memory of the exponentially weighted RLS algorithm. That is, we would like to interpret the forgetting factor as a sliding window length. We call this window length for the effective window length and denote it by $L_\textup{eff}$. A simple way of connecting $L_\textup{eff}$ and $\lambda$ is by requiring that
+\bmath
+  \lim_{n\to\infty} \sum_{i=1}^{n}\lambda^{n-i} = \lim_{n\to\infty} \sum_{i=n-L_\textup{eff}+1}^{n}1\ .
+\emath
+That is, when the RLS algorithm has reached steady-state, the area under the sliding window curve should equal the area under the exponential window curve. This leads to
+  \bmath
+     \lim_{n\to\infty} \sum_{i=n-L_\textup{eff}+1}^{n}1 = L_\textup{eff}
+  \emath
+  and
+  \bmath
+    \lim_{n\to\infty} \sum_{i=1}^{n}\lambda^{n-i}=\lim_{n\to\infty} \sum_{k=0}^{n-1}\lambda^{k} = \lim_{n\to\infty} \sum_{k=0}^{n-1}\lambda^{k} = \lim_{n\to\infty}\frac{1-\lambda^n}{1-\lambda} = \frac{1}{1-\lambda}
+  \emath
+  where the second last equality follows for $\lambda\neq 1$ from the geometric series, and the last equality follows if $0<\lambda<1$. Thus, we have that
+  \bmath
+    L_\textup{eff} = \frac{1}{1-\lambda}\ .
+  \emath
+
+\subsection{Transient Analysis}
+The RLS algorithm is stable in the mean and the mean-square if $0<\lambda\leq 1$\ . It may also be shown that the rate of the convergence of the RLS algorithm is typically an order of magnitude faster than the rate of the convergence of the LMS algorithm. Moreover, the rate of the convergence of the RLS algorithm is invariant to the condition number of the correlation matrix $\vect{R}_u$ of the input signal \cite[p.~463, ch.~14]{Haykin2001}.
+
+\subsection{Steady-State Analysis}
+It can be shown that \cite[p.~510]{Sayed2003}
+\begin{alignat}{2}
+  &\text{EMSE:}&\quad J_\textup{ex} &= J_2(\vect{w}(\infty))-J_\textup{min}\notag\\
+  & &\quad &\approx J_\textup{min}\frac{(1-\lambda)M}{1+\lambda-(1-\lambda)M}\\
+  &\text{Misadjustment:}&\quad \mathcal{M} &= \frac{ J_\textup{ex}}{J_\textup{min}} \approx \frac{(1-\lambda)M}{1+\lambda-(1-\lambda)M}\\
+  &\text{MSD:} &\quad E[\|\vect{\Delta}\vect{w}(\infty)\|^2] &\approx J_\textup{ex}\sum_{m=1}^M\frac{1}{\lambda_m}
+\end{alignat}
+where $\lambda_m$ is the $m$'th eigenvalue of the correlation matrix $\vect{R}_u$ not to be confused with the forgetting factor $\lambda$. The approximations hold under certain conditions which may be found in \cite[pp.~508--510]{Sayed2003}.
+
+\subsection{Computational Cost}
+Table~\ref{tab:comp_cost_rls} shows the computational cost of the RLS algorithm in terms of the number of multiplications, additions or subtractions, and divisions. From the table, we see that the total number of flops is $5M^2+5M+1$. Thus, the RLS algorithm has a complexity of $\mathcal{O}(M^2)$. Note, that there exist faster ways of implementing the RLS algorithm \cite[pp.~247]{Sayed2003}. Some of them even achieve linear complexity \cite{Slock1991}.
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{l c c c}
+    \toprule
+    Term & $\times$ & $+$ or $-$ & $/$\\
+    \midrule
+    $\vect{\pi}(n)=\vect{P}(n-1)\vect{u}(n)$ & $M^2$ & $M(M-1)$ &\\
+    $\vect{k}(n) = \vect{\pi}(n)/(\lambda+\vect{u}^T(n)\vect{\pi}(n))$ & $M$ & $M$ & $1$\\
+    $\xi(n)=d(n)-\vect{u}^T(n)\vect{w}(n-1)$ & $M$ & $M$ & \\
+    $\vect{w}(n) = \vect{w}(n-1)+\vect{k}(n)\xi(n)$ & $M$ & $M$ & \\
+    $\vect{P}(n) = (\vect{P}(n-1)-\vect{k}(n)\vect{\pi}^T(n))/\lambda$ & $M^2$ & $M^2$ & $M^2$ \\
+    \midrule
+    Total & $2M^2+3M$ & $2M^2+2M$ & $M^2+1$\\
+    \bottomrule
+  \end{tabular}
+  \caption{Computational cost of the RLS algorithm.}
+  \label{tab:comp_cost_rls}
+\end{table}

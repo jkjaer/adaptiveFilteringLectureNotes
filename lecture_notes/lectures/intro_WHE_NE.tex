@@ -1,0 +1,396 @@
+\chapter{Introduction, Wiener-Hopf Equations, and Normal Equations}
+\label{ch:intro_WHE_NE}
+\section{Review of the Basics}
+\subsection{Linear Algebra}
+\subsubsection{Notation}
+An $N$-dimensional vector is written as
+\bmath
+  \vect{x} = \bbmtx x_1 \\ x_2 \\ \vdots \\ x_N \ebmtx = \bbmtx x_1 & x_2 & \cdots & x_N \ebmtx^T
+\emath
+where $(\cdot)^T$ denotes the transpose. An $N\times M$-dimensional matrix is written as
+\bmath
+  \vect{A} =
+  \bbmtx
+    a_{11} & \cdots & a_{1M}\\
+    \vdots & \ddots & \vdots\\
+    a_{N1} & \cdots & a_{NM}\\
+  \ebmtx\ .
+\emath
+\subsubsection{Matrix Properties}
+Let $\vect{A}$ be a square matrix. We then have that
+\begin{alignat}{3}
+  &\vect{A}\text{ is orthogonal}    &\ &\iff &\ \vect{A}^T&=\vect{A}^{-1}\ \iff\ \vect{I} = \vect{AA}^T =  \vect{A}^T\vect{A}\\
+  &\vect{A}\text{ is symmetric}     &\ &\iff &\ \vect{A}^T&=\vect{A}\\
+  &\vect{A}\text{ is skew-symmetric}&\ &\iff &\ \vect{A}^T&=-\vect{A}\ .
+\end{alignat}
+Let $Q(\vect{x}) = \vect{x}^T\vect{Ax}$ where $\vect{A}$ is a square and symmetric matrix. We then have that
+\begin{alignat*}{4}
+  &\vect{A}\text{ is positive definite (p.d.)}      &\ &\iff &\ Q(\vect{x})&>    0   &\quad &\forall\ \vect{x}\neq 0\\
+  &\vect{A}\text{ is positive semidefinite (p.s.d.)}&\ &\iff &\ Q(\vect{x})&\geq 0   &\quad &\forall\ \vect{x}\\
+  &\vect{A}\text{ is negative definite (n.d.)}      &\ &\iff &\ Q(\vect{x})&<    0   &\quad &\forall\ \vect{x}\neq 0\\
+  &\vect{A}\text{ is negative semidefinite (n.s.d.)}&\ &\iff &\ Q(\vect{x})&\leq 0   &\quad &\forall\ \vect{x}\\
+  &\vect{A}\text{ is indefinite otherwise.}         & &      &             &         &\quad &
+\end{alignat*}
+The interested reader can find more on linear algebra in for example \cite{Lay2005} and \cite{Strang2009}.
+
+\subsection{Optimisation}
+\label{ssec:optimisation}
+\subsubsection{Gradiant and Hessian}
+Let $f(\vect{x})$ be a scalar function with continuous second-order partial derivatives. The gradient vector of $f(\vect{x})$ is defined as
+\bmath
+  \vect{g}(\vect{x}) = \vect{\nabla}f(\vect{x}) = \frac{\partial f}{\partial\vect{x}} = \bbmtx\frac{\partial f}{\partial x_1} & \frac{\partial f}{\partial x_2} & \cdots & \frac{\partial f}{\partial x_N}\ebmtx^T\ .
+\emath
+The Hessian matrix of $f(\vect{x})$ is symmetric and defined as
+\begin{align}
+  \vect{H}(\vect{x}) &= \vect{\nabla}[\vect{g}^T(\vect{x})] = \vect{\nabla}[\vect{\nabla}^Tf(\vect{x})] = \frac{\partial^2 f}{\partial\vect{x}\partial\vect{x}^T}\notag\\
+  &= 
+  \bbmtx
+    \frac{\partial^2 f}{\partial x_1^2} & \cdots & \frac{\partial^2 f}{\partial x_1\partial x_N}\\
+    \vdots & \ddots & \vdots\\
+    \frac{\partial^2 f}{\partial x_N\partial x_1} & \cdots & \frac{\partial^2 f}{\partial x_N^2}
+   \ebmtx\ .
+\end{align}
+When $f(\vect{x})$ consists of a constant term, we have that
+\bmathnt
+  f(\vect{x}) = \vect{c}\ \implies
+  \begin{cases}
+    \vect{g}(\vect{x})=\vect{0}\\
+    \vect{H}(\vect{x})=\vect{0}\\
+  \end{cases}\ .
+\emathnt
+When $f(\vect{x})$ consists of a linear term, we have that
+\bmathnt
+  f(\vect{x}) = \vect{v}^T\vect{x} = \vect{x}^T\vect{v}\ \implies
+  \begin{cases}
+    \vect{g}(\vect{x})=\vect{v}\\
+    \vect{H}(\vect{x})=\vect{0}\\
+  \end{cases}\ .
+\emathnt
+When $f(\vect{x})$ consists of a quadratic term, we have that
+\bmathnt
+  f(\vect{x}) = \vect{x}^T\vect{Ax}\ \implies
+  \begin{cases}
+    \vect{g}(\vect{x})=(\vect{A}+\vect{A}^T)\vect{x} = 2\vect{Ax}\\
+    \vect{H}(\vect{x})=\vect{A}+\vect{A}^T = 2\vect{A}\\
+  \end{cases}
+\emathnt
+where the last equality for the gradient and the Hessian holds if and only if $\vect{A}$ is symmetric.
+\subsubsection{Unconstrained Optimisation}
+We can solve an unconstrained optimisation problem by following a five step recipe.
+\begin{enumerate}
+  \item Construct the cost function $f(\vect{x})$.
+  \item Find the gradient $\vect{g}(\vect{x})=\frac{\partial f}{\partial\vect{x}}$.
+  \item Solve $\vect{g}(\vect{x})=\vect{0}$ for $\vect{x}$. The solutions $\{\vect{x}_i\}$ are called critical points.
+  \item Find the Hessian $\vect{H}(\vect{x})=\frac{\partial^2 f}{\partial\vect{x}\partial\vect{x}^T}$ and compute it for all the critical points. If
+\begin{alignat*}{3}
+  &\vect{H}(\vect{x}_i)\text{ is p.d}           &\ &\implies &\ &f(\vect{x}_i)\text{ is a local minimum}\\
+  &\vect{H}(\vect{x}_i)\text{ is n.d}           &\ &\implies &\ &f(\vect{x}_i)\text{ is a local maximum}\\
+  &\vect{H}(\vect{x}_i)\text{ is indefinite}    &\ &\iff     &\ &f(\vect{x}_i)\text{ is a saddle point}\\
+  &\vect{H}(\vect{x}_i)\text{ is p.s.d or n.s.d}&\ &\iff     &\ &\text{further analysis is necessary \cite[p.~41]{Antoniou2007}}
+\end{alignat*}
+  \item Find the global minimiser/maximiser by evaluating $f(\vect{x}_i)$ for every critical point.
+\end{enumerate}
+If $f(\vect{x})$ is a convex\footnote{If we should be completely accurate, we should distinguish between weakly and strictly convex functions. However, in this note, we only use convexity in the strict sense.} function, we have the following useful fact \cite[p.~57]{Antoniou2007}
+\bmathnt
+  f(\vect{x})\text{ is a convex function}\ \iff\ \vect{H}(\vect{x})\text{ is p.d. }\forall\ \vect{x}\ .
+\emathnt
+Thus, there is only one critical point corresponding to a minimum if and only if $f(\vect{x})$ is a convex function.
+
+The interested reader can find more on optimisation in for example \cite{Antoniou2007} and \cite{Boyd2004}.
+
+\subsection{Stochastic Processes}
+Let $X(n)$ for $n=n_0,n_0+1,\ldots,n_0+N-1$ be a stochastic process with joint probability density function (pdf) $p_X(x(n_0),x(n_0+1),\ldots,x(n_0+N-1))$.
+\subsubsection{Mean, Covariance and Correlation}
+The mean, covariance and correlations sequences are defined as
+\begin{alignat}{2}
+  &\text{Mean sequence:}       &\quad \mu_X(n)  ={}&E[X(n)] = \int x(n)p_X(x(n))dx(n)\\
+  &\text{Covariance sequence:} &\quad c_X(n,n+k)={}&\text{cov}(X(n),X(n+k))\notag\\
+  &                            &\quad           ={}& E[(X(n)-\mu_X(n)) (X(n+k)-\mu_X(n+k))]\\
+  &\text{Correlation sequence:}&\quad r_X(n,n+k)={}& E[X(n)X(n+k)]\ ,
+\end{alignat}
+and they are related by
+\bmath
+  c_X(n,n+k) = r_X(n,n+k) - \mu_X(n)\mu_X(n+k)\ .
+\emath
+For a finite number of observation, we may define the mean vector
+\bmath
+  \vect{\mu}_X = \bbmtx\mu_X(n_0) &\mu_X(n_0+1)&\cdots & \mu_X(n_0+N-1)\ebmtx^T\ ,
+\emath
+the covariance matrix
+\bmath
+  \vect{C}_X =
+  \bbmtx
+    c_X(n_0,n_0) & \cdots & c_X(n_0,n_0+N-1)\\
+    \vdots & \ddots & \vdots\\
+    c_X(n_0+N-1,n_0) & \cdots & c_X(n_0+N-1,n_0+N-1)\\
+  \ebmtx\ ,
+\emath
+and the correlation matrix
+\bmath
+  \vect{R}_X =
+  \bbmtx
+    r_X(n_0,n_0) & \cdots & r_X(n_0,n_0+N-1)\\
+    \vdots & \ddots & \vdots\\
+    r_X(n_0+N-1,n_0) & \cdots & r_X(n_0+N-1,n_0+N-1)\\
+  \ebmtx\ .
+\emath
+They are related by
+\bmath
+  \vect{C}_X = \vect{R}_X - \vect{\mu}_X\vect{\mu}_X^T\ .
+\emath
+$\vect{C}_X$ and $\vect{R}_X$ are symmetric and p.s.d. They are p.d. if $X(n)$ is \textit{not} perfectly predictable.
+\subsubsection{Stationarity and Wide Sense Stationarity (WSS)}
+\begin{alignat*}{3}
+  &X(n)\text{ is stationary} &\ &\iff &\ & p_X(x(n_0+m),x(n_0+1+m),\ldots,x(n_0+N-1+m))\\
+  &{}\qquad\Downarrow        &  &     &  &{}\ =p_X(x(n_0),x(n_0+1),\ldots,x(n_0+N-1))\quad \forall\  n_0,m,N\\
+  &X(n)\text{ is WSS}        &\ &\iff &\ &
+  \begin{cases}
+    \mu_X(n) = \mu_X & \text{(a constant)}\\
+    r_X(n,n+k) = r_X(0,k) & \text{(a function of $k$ not $n$)}
+  \end{cases}
+\end{alignat*}
+Since $r_X(0,k)$ does not depend on $n$, it is often written as $r_X(k)$. A Venn diagram for all stochastic processes is shown in Fig.~\ref{fig:rand_proc_relation}.
+
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/rand_proc_relation}
+  \caption{A Venn diagram for all stochastic processes.}
+  \label{fig:rand_proc_relation}
+\end{figure}
+
+Let $Y(n)$ be another stochastic process.
+\bmathnt
+  X(n) \text{ and } Y(n) \text{ are jointly WSS }\iff\ 
+  \begin{cases}
+    X(n) \text{ is WSS}\\
+    Y(n) \text{ is WSS}\\
+    r_{X,Y}(n,n+k) = r_{X,Y}(0,k)
+  \end{cases}
+\emathnt
+where $r_{X,Y}(n,n+k)$ is the cross-correlation sequence.
+\subsubsection{Estimation of Statistics}
+Often, we wish to estimate the statistics of $X(n)$ from a single realisation $x(n)$. If $X(n)$ is (wide sense) stationary and \textit{ergodic}\footnote{Ergodicity basically means that we can infer something about the statistics of a stochastic process from a single realisation of it.} in some sense (for example, in mean, in correlation, in power, or in distribution), we may estimate some or all of its statistics from a single realisation $x(n)$. Examples are the unbiased estimators of the mean
+\bmath
+  \hat{\mu}_X = \frac{1}{N}\sum_{n=n_0}^{n_0+N-1} x(n)
+\emath
+and the correlation sequence
+\bmath
+  \hat{r}_X(k) = \frac{1}{N-k}\sum_{n=n_0}^{n_0+N-1-k} x(n)x(n+k)\ .
+\emath
+
+The interested reader can find more on stochastic processes in for example \cite{Kay2005} and \cite{Leon-Garcia2008}.
+
+\section{Block Diagram of Adaptive Filtering}
+The adaptive filtering problem is shown in Fig.~\ref{fig:wss_block_diagram}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/wss_block_diagram}
+  \caption{Block Diagram of Adaptive Filtering in a WSS environment.}
+  \label{fig:wss_block_diagram}
+\end{figure}
+From the figure, we have that
+\begin{itemize}
+  \item[$u(n)$:] zero-mean, WSS input signal
+  \item[$w_m$:] $M$-tap FIR-filter with impulse response $w_0,w_1,\ldots,w_{M-1}$
+  \item[$y(n)$:] output signal given by 
+  \bmath
+    y(n) = \sum_{m=0}^{M-1}w_m u(n-m)
+  \emath
+  \item[$d(n)$:] zero-mean, WSS desired signal
+  \item[$e(n)$:] error signal
+\end{itemize}
+Moreover, $u(n)$ and $d(n)$ are assumed to be jointly WSS.
+\subsection{Mean-Squared Error and Squared Error cost functions}
+Define
+\begin{align}
+  \vect{w} &= \bbmtx w_0 & w_{1} & \cdots & w_{M-1}\ebmtx^T\\
+  \vect{u}(n)&= \bbmtx u(n) & u(n-1) & \cdots & u(n-M+1)\ebmtx^T\\
+  \vect{R}_u &= E[\vect{u}(n)\vect{u}^T(n)]\\
+  \vect{r}_{ud} &= E[\vect{u}(n)d(n)]\ .
+\end{align}
+Here, $\vect{R}_u$ is the correlation matrix of the input signal vector $\vect{u}(n)$, and $\vect{r}_{ud}$ is the cross-correlation vector between the input signal vector $\vect{u}(n)$ and the desired signal $d(n)$.
+
+For $n=n_0,n_0+1,\ldots,n_0+K-1$ with $K\geq M$, define
+\begin{align}
+  \vect{A} &= \bbmtx \vect{u}(n_0) & \vect{u}(n_0+1) & \cdots & \vect{u}(n_0+K-1)\ebmtx^T\label{eq:ls_phi}\\
+  \vect{d} &= \bbmtx d(n_0) & d(n_0+1) & \cdots & d(n_0+K-1)\ebmtx^T\label{eq:ls_d}\\
+  \vect{e} &= \bbmtx e(n_0) & e(n_0+1) & \cdots & e(n_0+K-1)\ebmtx^T\label{eq:ls_e}\ .
+\end{align}
+Then
+\bmath
+  e(n) = d(n) - \vect{u}^T(n)\vect{w}\quad\iff\quad d(n) = \vect{u}^T(n)\vect{w} + e(n)
+\emath
+and
+\bmath
+  \vect{e} = \vect{d}-\vect{A}\vect{w}\quad\iff\quad\vect{d}=\vect{A}\vect{w}+\vect{e}\ .
+  \label{eq:ls_model}
+\emath
+We observe the input signal $u(n)$ and the desired signal $d(n)$, and we wish to find the filter vector $\vect{w}$ which minimises the error in some sense. Two popular choices for the cost function of this problem are
+\begin{alignat}{3}
+ &\text{Mean-squared error:} &\qquad J_1(\vect{w}) &= E[e(n)^2] &\qquad &\text{(statistics is known)}\\
+ &\text{Squared error:} &\qquad J_2(\vect{w}) &= \sum_{n=n_0}^{n_0+K-1}e^2(n)=\vect{e}^T\vect{e} &\qquad &\text{(statistics is unknown)}
+  \label{eq:cf_squared_error}
+\end{alignat}
+If $\rank{\vect{A}}>M$, \eq{eq:ls_model} constitutes an overdetermined system of equations which do not have an exact solution that makes $J_2(\vect{w})=0$. The problem of minimising the squared error is often referred to as \textit{the method of least-squares}, and the argument minimising the squared error is referred to as \textit{the least-squares solution}. Moreover, the squared error divided by the number of elements in the error vector $\vect{e}$ can be seen as an unbiased estimate of the mean-squared error when $u(n)$ and $d(n)$ are assumed to be jointly WSS. That is,
+\bmath
+  E\left[\frac{1}{K}J_2(\vect{w})\right] = J_1(\vect{w})\ .
+\emath
+
+\section{The Wiener-Hopf Equations}
+We want to solve the following unconstrained optimisation problem
+\bmath
+  \vect{w}_o = \argmin_{\vect{w}} J_1(\vect{w})
+\emath
+where $\vect{w}_o$ is the vector containing the optimal filter coefficients. We use the five step recipe in Sec.~\ref{ssec:optimisation} to solve the optimisation problem.
+\begin{enumerate}
+  \item Construct the cost function
+  \begin{align}
+    J_1(\vect{w}) &= E[e(n)^2] = E[(d(n)-\vect{u}^T(n)\vect{w})^2] = E[(d(n)-\vect{u}^T(n)\vect{w})^T(d(n)-\vect{u}^T(n)\vect{w})]\notag\\
+    &= E[d(n)^2]+E[\vect{w}^T\vect{u}(n)\vect{u}^T(n)\vect{w}]-E[d(n)\vect{u}^T(n)\vect{w}]-E[\vect{w}^T\vect{u}(n)d(n)]\notag\\
+    &= E[d(n)^2]+\vect{w}^TE[\vect{u}(n)\vect{u}^T(n)]\vect{w}-2\vect{w}^TE[\vect{u}(n)d(n)]\notag\\
+    &= \sigma_d^2 + \vect{w}^T\vect{R}_u\vect{w}-2\vect{w}^T\vect{r}_{ud}\quad\text{(quadratic cost function)}
+  \end{align}
+  \item Find the gradient
+  \bmath
+    \vect{g}(\vect{w}) = (\vect{R}_u+\vect{R}_u^T)\vect{w}-2\vect{r}_{ud}=2\vect{R}_u\vect{w}-2\vect{r}_{ud}
+  \emath
+  \item Solve $\vect{g}(\vect{w})=\vect{0}$ for $\vect{w}$
+  \begin{alignat}{3}
+    &&\qquad \vect{g}(\vect{w}) &= \mathrlap{2\vect{R}_u\vect{w}-2\vect{r}_{ud} = \vect{0}}\notag\\
+    \ArrowBetweenLines
+    &&\qquad \alignedbox{\vect{R}_u\vect{w}}{=\vect{r}_{ud}}  &\qquad &\text{(Wiener-Hopf Equations)}\\
+    \ArrowBetweenLines
+    &&\qquad           \vect{w} &= \vect{R}_u^{-1}\vect{r}_{ud} &\qquad &\text{(If }\vect{R}_u\text{ is invertible)}
+  \end{alignat}
+  \item Find the Hessian
+  \bmath
+    \vect{H}(\vect{w}) = 2\vect{R}_u
+  \emath
+  which is p.d. for all $\vect{w}$ if $u(n)$ is not perfectly predictable.
+  \item This implies that
+  \begin{itemize}
+    \item $J_1(\vect{w})$ is a convex function,
+    \item $\vect{R}_u$ is invertible,
+    \item $\vect{w}_o = \vect{R}_u^{-1}\vect{r}_{ud}$ is the global minimiser, and
+    \item $J_1(\vect{w}_o) = \sigma_d^2-\vect{r}_{ud}^T\vect{R}_u^{-1}\vect{r}_{ud}$\ .
+  \end{itemize}
+\end{enumerate}
+The solution $\vect{w}_o$ is often referred to as the least-mean-squares solution.
+
+\subsection{Principle of Orthogonality}
+The Wiener-Hopf equations can also be derived from the principle of orthogonality. For $m=0,1,\ldots,M-1$, the principle of orthogonality states
+\bmath
+  0=E[u(n-m)e_o(n)]\ \iff\ 0=E[y_o(n)e_o(n)]\ \iff\ \vect{w}_o = \vect{R}_u^{-1}\vect{r}_{ud}\ .
+\emath
+where $e_o(n)$ and $y_o(n)$ are the error and the filter output, respectively, when the filter is optimised in the mean-squared sense.
+
+\subsection{The Modified Yule-Walker Equations}
+The Wiener-Hopf equations are closely related to the Modified Yule-Walker equations. To see this, let $d(n)=u(n+1)$. Then
+\bmath
+  \vect{r}_{ud} = E[\vect{u}(n) d(n)] = E[\vect{u}(n) u(n+1)] = \vect{p}_u
+\emath
+which implies that
+\bmath
+  \vect{R}_u\vect{w} = \vect{p}_u \qquad \text{(Modified Yule-Walker Equations)}\ .
+\emath
+
+\section{The Normal Equations}
+We want to solve the following unconstrained optimisation problem
+\bmath
+  \vect{w}_o = \argmin_{\vect{w}} J_2(\vect{w})
+\emath
+where $\vect{w}_o$ is the vector containing the optimal filter coefficients. We use the five step recipe in Sec.~\ref{ssec:optimisation} to solve the optimisation problem.
+\begin{enumerate}
+  \item Construct the cost function
+  \begin{align}
+    J_2(\vect{w}) &= \vect{e}^T\vect{e} = (\vect{d}-\vect{A w})^T(\vect{d}-\vect{A w})\notag\\
+    &= \vect{d}^T\vect{d}+\vect{w}^T\vect{A}^T\vect{A w}-2\vect{w}^T\vect{A}^T\vect{d}\quad\text{(quadratic cost function)}
+  \end{align}
+  \item Find the gradient
+  \bmath
+    \vect{g}(\vect{w}) = (\vect{A}^T\vect{A}+\vect{A}^T\vect{A})\vect{w}-2\vect{A}^T\vect{d}=2\vect{A}^T\vect{A}\vect{w}-2\vect{A}^T\vect{d}
+  \emath
+  \item Solve $\vect{g}(\vect{w})=\vect{0}$ for $\vect{w}$
+  \begin{alignat}{3}
+    &&\qquad \vect{g}(\vect{w}) &= \mathrlap{2\vect{A}^T\vect{A}\vect{w}-2\vect{A}^T\vect{d} = \vect{0}}\notag\\
+    \ArrowBetweenLines
+    &&\qquad \alignedbox{\vect{A}^T\vect{A}\vect{w}}{=\vect{A}^T\vect{d}}  &\qquad &\text{(Normal Equations)}\\
+    \ArrowBetweenLines
+    &&\qquad           \vect{w} &= (\vect{A}^T\vect{A})^{-1}\vect{A}^T\vect{d} &\qquad &\text{(If }\vect{A}\text{ has full rank)}
+  \end{alignat}
+  \item Find the Hessian
+  \bmath
+    \vect{H}(\vect{w}) = 2\vect{A}^T\vect{A}
+  \emath
+  which is p.d. for all $\vect{w}$  if $\vect{A}$ has full rank.
+  \item This implies that
+  \begin{itemize}
+    \item $J_2(\vect{w})$ is a convex function,
+    \item $\vect{w}_o = (\vect{A}^T\vect{A})^{-1}\vect{A}^T\vect{d}$ is the global minimiser, and
+    \item $J_2(\vect{w}_o) = \vect{d}^T(\vect{I}-\vect{P}_u)\vect{d} = \vect{d}^T\vect{P}_u^{\perp}\vect{d}$ where $\vect{P}_u=\vect{A}(\vect{A}^T\vect{A})^{-1}\vect{A}^T$ is the orthogonal projection matrix and $\vect{P}_u^{\perp}$ is the complementary projection matrix to $\vect{P}_u$.
+  \end{itemize}
+\end{enumerate}
+The solution $\vect{w}_o$ is often referred to as the least-squares solution.
+
+\subsection{Principle of Orthogonality}
+\begin{figure}
+  \centering
+  \inputTikZ{figures/orthogonality_principle}
+  \caption{The principle of orthogonality for the squared error cost function.}
+  \label{fig:orthogonality_principle}
+\end{figure}
+The normal equations can also be derived from the principle of orthogonality
+\bmath
+  \vect{0}=\vect{A}^T\vect{e}_o\ \iff\ \vect{0}=\vect{y}_o^T\vect{e}_o\ \iff\ \vect{w}_o = (\vect{A}^T\vect{A})^{-1}\vect{A}^T\vect{d}\ .
+\emath
+where $\vect{e}_o$ and $\vect{y}_o$ are the error vector and the filter output vector, respectively, when the filter is optimised in the squared sense. Fig.~\ref{fig:orthogonality_principle} illustrates the principle of orthogonality.
+
+\subsection{Estimation of the (Cross-)Correlation}
+Comparing the normal equations with the Wiener-Hopf equations, we see that
+\begin{align}
+  \hat{\vect{R}}_u &= \frac{1}{K}\vect{A}^T\vect{A}\label{eq:ls_Ru_est}\\
+  \hat{\vect{r}}_{ud} &= \frac{1}{K}\vect{A}^T\vect{d}\label{eq:ls_rud_est}
+\end{align}
+are the build in estimates of the correlation matrix and the cross-correlation vector, respectively, in the method of least-squares.
+
+\subsection{Data Windowing}
+Recall the definition of $\vect{A}^T$ in \eq{eq:ls_phi} with $n_0=1$ and $K=N+M-1$.
+\bmathnt
+\left[
+  \begin{array}{@{}c@{}|c@{}|c@{}}
+    \begin{matrix}
+      u(1)    & \cdots & u(M-1)\\
+      u(0)    & \cdots & u(M-2)\\
+      \vdots  & \ddots & \vdots\\
+      u(2-M)  & \cdots & u(0)\\
+    \end{matrix} &
+    \begin{matrix}
+      u(M)    & \cdots & u(N)\\
+      u(M-1)  & \cdots & u(N-1)\\
+      \vdots  & \ddots & \vdots\\
+      u(1)    & \cdots & u(N-M+1)\\
+    \end{matrix} &
+    \begin{matrix}
+      u(N+1)  & \cdots & u(N+M-1)\\
+      u(N)    & \cdots & u(N+M-2)\\
+      \vdots  & \ddots & \vdots\\
+      u(N-M+2)& \cdots & u(N)\\
+    \end{matrix}
+  \end{array}
+  \right]
+\emathnt
+In real-world applications, we only observe a finite amount of data. Assume that we observe $u(n)$ for $n=1,\ldots,N$ while the remaining data for $n\leq 0$ and $n>N$ are unobserved. If we set the unobserved data equal to zero, we obtain the structure for $\vect{A}$ shown in Fig~\ref{fig:ls_windowing}.
+\begin{figure}[htbp]
+  \centering
+  \inputTikZ{figures/ls_windowing}
+  \caption{Four different data windowing methods.}
+  \label{fig:ls_windowing}
+\end{figure}
+The various choices for $\vect{A}$ are
+\begin{alignat*}{3}
+  &\vect{A}_1\text{ - covariance method:}   &\qquad n_0&=M &\qquad K&=N-M+1\\
+  &\vect{A}_2\text{ - autocorrelation method:}  &\qquad n_0&=1 &\quad K&=N+M-1\\
+  &\vect{A}_3\text{ - prewindowing method:} &\qquad n_0&=1 &\quad K&=N    \\
+  &\vect{A}_4\text{ - postwindowing method:}&\qquad n_0&=M &\quad K&=N
+\end{alignat*}
+The cost function and the length of $\vect{e}$ in \eq{eq:ls_e} and $\vect{d}$ in \eq{eq:ls_d} must be adjusted according to the windowing method. The covariance method leads to unbiased estimates of $\vect{R}_u$ and $\vect{r}_{ud}$ in \eq{eq:ls_Ru_est} and \eq{eq:ls_rud_est}, respectively.

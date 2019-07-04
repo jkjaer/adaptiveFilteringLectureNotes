@@ -1,0 +1,425 @@
+\chapter{Transient and Steady-State Analysis of the LMS Adaptive Filter}
+\label{app:lms_analysis}
+In this appendix, we give a more detailed transient and steady-state analysis of the LMS adaptive filter than found in Lecture~\ref{ch:SD_LMS}. Specifically, we derive the condition for mean-square convergence and the expressions for the learning curve, the excess mean-square error (EMSE), the mean-square deviation (MSD), and the misadjustment. We do this for two reasons. Firstly, it is instructive to see how the analysis is carried out, and, secondly, it highlights how difficult the analysis is - even of the simple LMS adaptive filter. 
+
+In the derivation below, we use the analysis model previously discussed in Sec.~\ref{ssec:analysis_model}. We also need the following important result.
+
+\section{A Special Fourth Order Moment of a Gaussian Random Vector}
+Let $\vect{u}$ be a real-valued $M\times 1$ dimensional Gaussian random vector with zero-mean and correlation matrix $\vect{R}_u$. Moreover, let $\vect{W}$ be an $M\times M$ symmetric matrix. We then have that \cite[p.~44]{Sayed2003}
+\bmath
+  E[\vect{uu}^T\vect{Wuu}^T] = \vect{R}_u\tr{\vect{WR}_u}+2\vect{R}_u\vect{WR}_u\ .
+\emath
+If $\vect{R}_u = \vect{X\Lambda X}^T$ is the eigenvalue decomposition of the correlation matrix and if we define $\vect{F}=\vect{X}^T\vect{WX}$, we may write
+\bmath
+  E[\vect{uu}^T\vect{Wuu}^T] = \vect{X}[\vect{\Lambda}\tr{\vect{F\Lambda}}+2\vect{\Lambda F\Lambda}]\vect{X}^T\ .
+\emath
+With this result in mind, we can now evaluate the following expectation
+\begin{align}
+  E[(\vect{I}-\mu\vect{u}\vect{u}^T)\vect{W}(\vect{I}-\mu\vect{u}\vect{u}^T)]&= \vect{W}+\mu^2E[\vect{uu}^T\vect{Wuu}^T]-\mu\vect{R}_u\vect{W}-\mu\vect{W}\vect{R}_u\\
+  &= \vect{W} + \mu^2\vect{R}_u\tr{\vect{WR}_u}+2\mu^2\vect{R}_u\vect{WR}_u -\mu\vect{R}_u\vect{W}-\mu\vect{W}\vect{R}_u\\
+  &= \vect{X}[\vect{F} - \mu(\vect{\Lambda F}+\vect{F\Lambda}) + \mu^2(\vect{\Lambda}\tr{\vect{F\Lambda}} + 2\vect{\Lambda F\Lambda})]\vect{X}^T\ .
+\end{align}
+If $\vect{F}$ is diagonal, then $\vect{F\Lambda}=\vect{\Lambda F}$ and we have that
+\bmath
+	E[(\vect{I}-\mu\vect{u}\vect{u}^T)\vect{W}(\vect{I}-\mu\vect{u}\vect{u}^T)] = \vect{X}[\vect{F} - 2\mu\vect{\Lambda F} + \mu^2(\vect{\Lambda}\tr{\vect{F\Lambda}} + 2\vect{\Lambda}^2 \vect{F})]\vect{X}^T\ .
+	  \label{eq:app_lms_4mom}
+\emath
+This result is very important for the derivation below.
+
+\section{The Analysis Model}
+The LMS algorithm is given by
+\bmath
+  \vect{w}(n+1) = \vect{w}(n) + \mu\vect{u}(n)e(n)
+\emath
+where $\vect{w}(n)$, $\vect{u}(n)$, and $e(n)$ are the filter vector, the input vector and the error, respectively, at time index $n$. The positive scalar $\mu$ is the step-size, and the error is given by
+\bmath
+  e(n) = d(n) - \vect{u}^T(n)\vect{w}(n)
+\emath
+where the desired signal $d(n)$ in the analysis model (see also Sec.~\ref{ssec:analysis_model}) is given by
+\bmath
+  d(n) = v(n) + \vect{u}^T(n)\vect{w}_o\ .
+\emath
+We assume that $v(n)$ is white Gaussian noise with variance $\sigma_v^2$ and uncorrelated with the input signal $u(n)$. Finally, we assume that $\vect{u}(n)$ is a white Gaussian process with correlation matrix $\vect{R}_u$. This implies that $\vect{u}(n)$ and $\vect{w}(n)$ are uncorrelated.
+
+The difference between the optimal filter vector $\vect{w}_o$ and the filter vector $\vect{w}(n)$ is called the weight error, and it is given by
+\begin{align}
+  \vect{\Delta}\vect{w}(n) &= \vect{w}_o-\vect{w}(n) = \vect{w}_o - \vect{w}(n-1) - \mu\vect{u}(n-1)e(n-1)\\
+  &= \vect{\Delta}\vect{w}(n-1) - \mu \vect{u}(n-1)[v(n)+\vect{u}^T(n-1)\vect{w}_o-\vect{u}^T(n-1)\vect{w}(n-1)]\\
+  &= [\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)]\vect{\Delta}\vect{w}(n-1)-\mu\vect{u}(n-1)v(n)\ .
+ \label{app:lms_weight_error}
+\end{align}
+In terms of the weight error, the error is given by
+\bmath
+  e(n) = d(n) - \vect{u}^T(n)\vect{w}(n) = v(n)+\vect{u}^T(n)\vect{\Delta}\vect{w}(n)\ ,
+\emath
+and the minimum mean-squared error (MMSE) is achieved at the optimum where $\vect{\Delta}\vect{w}(n)=\vect{0}$ and thus given by
+\bmath
+  J_\textup{min} = J_1(\vect{w}_o) = E[v^2(n)] = \sigma_v^2\ .
+\emath
+
+\section{Transient Analysis}
+In the transient analysis, we first consider how we should select the step-size $\mu$ in order to ensure the mean-square stability of the LMS algorithm. Second, we derive an expression for the learning curve.
+
+\subsection{Mean-Square Convergence}
+As already discussed in Lecture~\ref{ch:SD_LMS}, we say that the LMS algorithm converges in the mean-square if
+\bmath
+  \lim_{n\to\infty} E[\|\vect{\Delta w}(n)\|^2] = c <\infty\ .
+\emath
+In this section, we show that the LMS algorithm converges in the mean square if the step-size $\mu$ is selected such that it satisfies
+\bmath
+  f(\mu) = \frac{\mu}{2}\sum_{m=1}^M \frac{\lambda_m}{1-\mu\lambda_m} < 1
+\emath
+where $\lambda_m$ is the $m$'th eigenvalue of the correlation matrix $\vect{R}_u$. 
+
+In order to do this, we investigate $E[\|\vect{\Delta w}(n)\|^2]$ as $n$ grows. For convenience of notation, it turns out to be easier to work with $E[\|\vect{c}(n)\|^2]$ where $\vect{c}(n)= \vect{X}^T\vect{\Delta}\vect{w}(n)$ and $\vect{X}$ contains the $M$ eigenvectors of $\vect{R}_u$. Since $\vect{X}$ is orthogonal, it follows that
+\bmath
+  E[\|\vect{c}(n)\|^2] = E[\|\vect{X}^T\vect{\Delta w}(n)\|^2] = E[\|\vect{\Delta w}(n)\|^2]
+\emath
+Thus, $E[\|\vect{c}(n)\|^2]$ converges in the same way as $E[\|\vect{\Delta w}(n)\|^2]$ does. In the derivation below, we express $E[\|\vect{c}(n)\|^2]$ as a function of $\vect{c}(0)$, $\mu$, $\vect{\Lambda}$, and $J_\textup{min}$. We do this in a recursive manner starting by expressing $E[\|\vect{c}(n)\|^2]$ as a function of $\vect{c}(n-1)$, $\mu$, $\vect{\Lambda}$, and $J_\textup{min}$. Once we have obtained an expression for this recursion, we express $E[\|\vect{c}(n)\|^2]$ as a function of $\vect{c}(n-2)$, $\mu$, $\vect{\Lambda}$, and $J_\textup{min}$ in the next recursion and so on.
+
+\subsubsection{The First Recursion}
+Multiplying \eq{app:lms_weight_error} from the left with $\vect{X}^T$ and inserting it into $E[\|\vect{c}(n)\|^2]$ yields
+\begin{align}
+  E[\|\vect{c}(n)\|^2] ={}& E[\|\vect{X}^T[\vect{I}-\mu\vect{u}(n-1)\vect{u}^T(n-1)]\vect{X}\vect{c}(n-1)-\mu\vect{X}^T\vect{u}(n-1)v(n)\|^2]\\
+   ={}& E[\vect{c}^T(n-1)\vect{X}^T[\vect{I}-\mu \vect{u}(n-1)\vect{u}^T(n-1)]^2\vect{X}\vect{c}(n-1)]\notag\\
+   &{}+\mu^2E[v^2(n)\vect{u}^T(n-1)\vect{u}(n-1)]
+   \label{eq:app_lms_first_recur_start}
+\end{align}
+where the last equality follows from the assumption that $v(n)$ and $\vect{u}(n)$ are uncorrelated.
+The expectation of the last term is given by
+\begin{align}
+ E[v^2(n)\vect{u}^T(n-1)\vect{u}(n-1)] &= E[v^2(n)]E[\vect{u}^T(n-1)\vect{u}(n-1)]\\
+ &= J_\textup{min} E[\tr{\vect{u}^T(n-1)\vect{u}(n-1)}]\\
+ &= J_\textup{min} E[\tr{\vect{u}(n-1)\vect{u}^T(n-1)}]\\
+ &= J_\textup{min} \tr{E[\vect{u}(n-1)\vect{u}^T(n-1)]}\\
+ &= J_\textup{min} \tr{\vect{R}_u}\\
+ &= J_\textup{min} \tr{\vect{\Lambda}}\ .
+\end{align}
+The second equality follows since the trace of a scalar equals the value of the scaler. The third equality follows from a property of the trace operator given by
+\bmath
+  \tr{\vect{AB}} = \tr{\vect{BA}}
+\emath
+for any pair of matrices $\vect{A}$ and $\vect{B}$ with $\vect{A}$ and $\vect{B}^T$ being of the same dimension. The fourth equality follows since both the expectation and the trace operators are linear operators whose order can therefore be interchanged. Finally, the last equality follows since
+\bmath
+  \tr{\vect{R}_u} = \tr{\vect{X\Lambda X}^T} = \tr{\vect{\Lambda X}^T\vect{X}} = \tr{\vect{\Lambda}}\ .
+\emath
+This was previously stated in the beginning of Lecture~\ref{ch:SD_LMS}.
+
+In order to evaluate the expectation of the first term in \eq{eq:app_lms_first_recur_start}, we use the law of iterated expectations given by\footnote{It follows since
+\begin{align*}
+  E[E[X|Y]] &= \int E[X|Y]f_Y(y)dy = \int \left[\int x f_{X|Y}(x|y)dx\right]f_Y(y)dy = \int\int x f_{X,Y}(x,y)dxdy\\
+  &= \int x \left[\int f_{X,Y}(x,y)dy\right]dx = \int x f_X(x)dx = E[X]\ .
+\end{align*}}
+\bmath
+  E[X] = E[E[X|Y]]\ ,
+\emath
+and the assumption that $\vect{u}(n)$ and $\vect{w}(n)$ are uncorrelated. From this, we obtain that
+\begin{align}
+   E[\vect{c}^T(n-1)\vect{X}^T[\vect{I}-\mu &\vect{u}(n-1)\vect{u}^T(n-1)]^2\vect{X}\vect{c}(n-1)] = \notag\\
+   &E[\vect{c}^T(n-1)\vect{X}^TE[(\vect{I}-\mu \vect{u}(n-1)\vect{u}^T(n-1))^2]\vect{X}\vect{c}(n-1)]\ .
+\end{align}
+The inner expectation is on the same form as \eq{eq:app_lms_4mom} with $\vect{W}=\vect{F}=\vect{I}$. Thus, we have that
+\begin{align}
+  \vect{S}(1) &= \vect{X}^TE[(\vect{I}-\mu \vect{u}(n-1)\vect{u}^T(n-1))^2]\vect{X}\\
+  &= \vect{I}-2\mu\vect{\Lambda}+\mu^2[\vect{\Lambda}\tr{\vect{\Lambda}}+2\vect{\Lambda}^2]\ .
+\end{align}
+which is a diagonal matrix. Thus, we can write \eq{eq:app_lms_first_recur_start} as
+\bmath
+  E[\|\vect{c}(n)\|^2] = E[\vect{c}^T(n-1)\vect{S}(1)\vect{c}(n-1)]+\mu^2J_\textup{min}\tr{\vect{\Lambda}}\ .
+  \label{eq:app_lms_first_recur}
+\emath
+
+\subsubsection{The Second Recursion}
+Since the second term of \eq{eq:app_lms_first_recur} does not depend on $\vect{c}(n)$, we consider the first term of \eq{eq:app_lms_first_recur}. Multiplying \eq{app:lms_weight_error} for time index $n-1$ from the left with $\vect{X}^T$ and inserting it into the first term yields
+\begin{align}
+  E[&\vect{c}^T(n-1)\vect{S}(1)\vect{c}(n-1)] = \notag\\
+  &E[\vect{c}^T(n-2)\vect{X}^T[\vect{I}-\mu\vect{u}(n-2)\vect{u}^T(n-2)]\vect{X}\vect{S}(1)\vect{X}^T[\vect{I}-\mu\vect{u}(n-2)\vect{u}^T(n-2)]\vect{X}\vect{c}(n-2)]\notag\\
+  &{}+\mu^2 E[v^2(n)\vect{u}^T(n-2)\vect{X}\vect{S}(1)\vect{X}^T\vect{u}(n-2)]\ .
+  \label{eq:app_lms_second_recur_start}
+\end{align}
+The expectation of the last term is given by
+\begin{align}
+ E[v^2(n)\vect{u}^T(n-2)\vect{X}\vect{S}(1)\vect{X}^T\vect{u}(n-2)] &= E[v^2(n)]E[\vect{u}^T(n-2)\vect{X}\vect{S}(1)\vect{X}^T\vect{u}(n-2)]\notag\\
+ &= J_\textup{min} E[\tr{\vect{u}^T(n-2)\vect{X}\vect{S}(1)\vect{X}^T\vect{u}(n-2)}]\notag\\
+ &= J_\textup{min} \tr{\vect{X}\vect{S}(1)\vect{X}^TE[\vect{u}(n-2)\vect{u}^T(n-2)]}\notag\\
+ &= J_\textup{min}\tr{\vect{S}(1)\vect{\Lambda}}\ .
+\end{align}
+The equalities in the derivation above follows from the same arguments as in the derivation for the equivalent expression in the first recursion. Using the same arguments as in the first recursion, the first term of \eq{eq:app_lms_second_recur_start} may be written as an outer and an inner expectation. The inner expectation can be evaluated using \eq{eq:app_lms_4mom} with $\vect{W}=\vect{XS}(1)\vect{X}^T$ or $\vect{F}=\vect{S}(1)$. Thus, we have that $\vect{S}(2)$ is given by
+\begin{align}
+  \vect{S}(2) &= \vect{X}^TE\left[[\vect{I}-\mu\vect{u}(n-2)\vect{u}^T(n-2)]\vect{X}\vect{S}(1)\vect{X}^T[\vect{I}-\mu\vect{u}(n-2)\vect{u}^T(n-2)]\right]\vect{X}\notag\\
+  &= \vect{S}(1) - 2\mu\vect{\Lambda}\vect{S}(1)+\mu^2[\vect{\Lambda}\tr{\vect{S}(1)\vect{\Lambda}}+2\vect{\Lambda}\vect{S}(1)\vect{\Lambda}]
+\end{align}
+which is diagonal since $\vect{S}(1)$ is diagonal. Thus, in total we have that
+\begin{align}
+    E[\|\vect{c}(n)\|^2] &= E[\vect{c}^T(n-1)\vect{S}(1)\vect{c}(n-1)] +\mu^2J_\textup{min}\tr{\vect{\Lambda}}\\
+    &= E[\vect{c}^T(n-2)\vect{S}(2)\vect{c}(n-2)]+\mu^2J_\textup{min}\tr{\vect{S}(1)\vect{\Lambda}}+\mu^2J_\textup{min}\tr{\vect{\Lambda}}\\
+    &= E[\vect{c}^T(n-2)\vect{S}(2)\vect{c}(n-2)]+\mu^2J_\textup{min}\tr{[\vect{S}(1)+\vect{I}]\vect{\Lambda}}\ .
+    \label{eq:app_lms_second_recur}
+\end{align}
+
+\subsubsection{The Third Recursion}
+Since the second term of \eq{eq:app_lms_second_recur} does not depend on $\vect{c}(n)$, we consider the first term of \eq{eq:app_lms_second_recur}. This has the same form as the first term of \eq{eq:app_lms_first_recur} so the derivation of the third recursion is the same as for the second recursion, except that all the time indices should be decreased by one. We therefore obtain that
+\begin{align}
+    E[\|\vect{c}(n)\|^2] &= E[\vect{c}^T(n-1)\vect{S}(1)\vect{c}(n-1)] +\mu^2J_\textup{min}\tr{\vect{\Lambda}}\\
+    &= E[\vect{c}^T(n-2)\vect{S}(2)\vect{c}(n-2)]+\mu^2J_\textup{min}\tr{[\vect{S}(1)+\vect{I}]\vect{\Lambda}}\\
+    &= E[\vect{c}^T(n-3)\vect{S}(3)\vect{c}(n-3)]+\mu^2J_\textup{min}\tr{[\vect{S}(2)+\vect{S}(1)+\vect{I}]\vect{\Lambda}}\ .
+    \label{eq:app_lms_third_recur}
+\end{align}
+
+\subsubsection{The $n$'th Recursion}
+From the first, second, and third recursion, it is not hard to see a pattern for the recursions. Therefore, for the $n$'th recursion, we have that
+\begin{align}
+    E[\|\vect{c}(n)\|^2] &= \vect{c}^T(0)\vect{S}(n)\vect{c}(0)+\mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}
+    \label{eq:app_lms_nth_recur}
+\end{align}
+where
+\bmath
+  \vect{S}(n) = \vect{S}(n-1) - 2\mu\vect{\Lambda}\vect{S}(n-1)+\mu^2[\vect{\Lambda}\tr{\vect{S}(n-1)\vect{\Lambda}}+2\vect{\Lambda}\vect{S}(n-1)\vect{\Lambda}]
+  \label{eq:app_lms_Sn_recur}
+\emath
+with $\vect{S}(0) = \vect{I}$. From the recursion in \eq{eq:app_lms_nth_recur}, we see that we must require that $\vect{c}^T(0)\vect{S}(n)\vect{c}(0)$ remains bounded for $n\to\infty$, regardless of the initial conditions $\vect{c}(0)$. Since $\vect{c}^T(0)\vect{S}(n)\vect{c}(0)$ remains bounded if and only if all the eigenvalues of $\vect{S}(n)$ are in the interval $[-1,1]$, we therefore perform an eigenvalue analysis of $\vect{S}(n)$.
+
+\subsubsection{Eigenvalue Analysis of $\vect{S}(n)$}
+Define the vector of ones
+\bmath
+  \vect{1} = \bbmtx 1 & 1 & \cdots & 1\ebmtx^T\ .
+\emath
+Using this vector, we may write the trace of a diagonal matrix $\vect{M}$ as
+\bmath
+  \tr{\vect{M}} = \vect{1}^T\vect{M1}\ .
+\emath
+Since $\vect{S}(n)$ and $\vect{\Lambda}$ are diagonal matrices, the product $\vect{S}(n)\vect{\Lambda}$ is also diagonal, and we have that
+\begin{align}
+  \vect{S}(n-1)\vect{\Lambda} &= \vect{\Lambda}\vect{S}(n-1)\\
+  \tr{\vect{S}(n)\vect{\Lambda}} &= \vect{1}^T\vect{S}(n)\vect{\Lambda 1} = \vect{1}^T\vect{\Lambda}\vect{S}(n)\vect{1}\ .
+  \label{eq:app_lms_tr_diag}
+\end{align}
+Multiplying both sides of \eq{eq:app_lms_Sn_recur} from the right with $\vect{1}$, we obtain
+\begin{align}
+  \vect{S}(n)\vect{1} &= \vect{S}(n-1)\vect{1} - 2\mu\vect{\Lambda}\vect{S}(n-1)\vect{1}+\mu^2[\vect{\Lambda}\vect{1}\vect{1}^T\vect{\Lambda}\vect{S}(n-1)\vect{1}+2\vect{\Lambda}^2\vect{S}(n-1)\vect{1}]\\
+  &= [\vect{I}-2\mu\vect{\Lambda}+\mu^2(\vect{\Lambda}\vect{1}\vect{1}^T\vect{\Lambda}+2\vect{\Lambda}^2)]\vect{S}(n-1)\vect{1}\ .
+\end{align}
+Now, we define
+\bmath
+  \vect{D} = \vect{I}-2\mu\vect{\Lambda}+\mu^2(\vect{\Lambda}\vect{1}\vect{1}^T\vect{\Lambda}+2\vect{\Lambda}^2)
+  \label{eq:app_lms_D}
+\emath
+so that we have
+\begin{align}
+  \vect{S}(n)\vect{1} &= \vect{D}\vect{S}(n-1)\vect{1}\\
+  &\underset{\vdots}{=} \vect{D}^2\vect{S}(n-2)\vect{1}\\
+  & = \vect{D}^n\vect{S}(0)\vect{1}
+  \label{eq:app_lms_S_D_recur}
+\end{align}
+This means that the elements of the diagonal matrix $\vect{S}(n)$ are bounded if and only if all the eigenvalues of $\vect{D}$ are in the interval $[-1,1]$.
+
+\subsubsection{Eigenvalue Analysis of $\vect{D}$}
+We can write $\vect{D}$ as 
+\bmath
+  \vect{D} = 2(\vect{I}-\mu\vect{\Lambda})^2+2\mu\vect{\Lambda}+\mu^2\vect{\Lambda}\vect{1}\vect{1}^T\vect{\Lambda}
+\emath
+which is clearly positive semidefinite since $\mu>0$ and $\lambda_m > 0$. Thus, all eigenvalues of $\vect{D}$ are non-negative, and the only requirement to the eigenvalues is therefore that they are smaller than one. This is equivalent to requiring that $\vect{I}-\vect{D}$ is positive definite. From Sylvester's criterion, we know that an $M\times M$ matrix $\vect{A}$ is positive definite if and only if the determinant of all the upper $m\times m$ matrices $\vect{A}_m$ of $\vect{A}$ are positive for $m = 1,\ldots,M$. If $\vect{1}_m$ is a vector consisting of $m$ ones, $\vect{I}_m$ is the $m\times m$ identity matrix, and $\vect{\Lambda}_m$ and $\vect{D}_m$ are the upper $m\times m$ matrices of $\vect{\Lambda}$ and $\vect{D}$, respectively, we have that
+\bmath
+  \vect{D}_m = \vect{I}_m - 2\mu\vect{\Lambda}_m+\mu^2\vect{\Lambda}_m(\vect{1}_m\vect{1}_m^T+2\vect{I}_m)\vect{\Lambda}_m\ ,\qquad \text{for }m=1,\ldots,M\ ,
+\emath
+and we require that
+\bmath
+  |\vect{I}_m - \vect{D}_m| > 0\ ,\qquad \text{for }m=1,\ldots,M
+\emath
+for $\vect{I}-\vect{D}$ to be positive definite. The determinant of $\vect{I}_m - \vect{D}_m$ is 
+\begin{align}
+  |\vect{I}_m-\vect{D}_m| &= |2\mu\vect{\Lambda}_m-\mu^2\vect{\Lambda}_m(\vect{1}_m\vect{1}_m^T+2\vect{I}_m)\vect{\Lambda}_m|\\
+  &= |\mu^2\vect{\Lambda}_m||2\mu^{-1}\vect{I}_m-2\vect{\Lambda}_m - \vect{1}_m\vect{1}_m^T\vect{\Lambda}_m|
+\end{align}
+Since $\mu>0$ and $\lambda_m > 0$, the determinant of $\mu^2\vect{\Lambda}_m$ is positive for all $m=1,\ldots,M$. In order to evaluate the second determinant, we use the matrix determinant lemma which states that
+\bmath
+  |\vect{A}+\vect{U}\vect{V}^T| = |\vect{A}||\vect{I}+\vect{V}^T\vect{A}^{-1}\vect{U}|
+\emath
+where $\vect{A}$ is an $N\times N$ matrix, and $\vect{U}$ and $\vect{V}$ are $N\times M$ matrices. From the matrix determinant lemma, we have that
+\begin{align}
+  |2\mu^{-1}\vect{I}_m-2\vect{\Lambda}_m - \vect{1}_m\vect{1}_m^T\vect{\Lambda}_m| &= |2\mu^{-1}\vect{I}_m-2\vect{\Lambda}_m||1-\frac{1}{2}\vect{1}_m^T\vect{\Lambda}_m(\mu^{-1}\vect{I}_m-\vect{\Lambda}_m)^{-1}\vect{1}_m|
+\end{align}
+The argument of the first determinant is a diagonal matrix. Thus, it leads to
+\begin{alignat}{2}
+  && 0 &< 2\mu^{-1}-2\lambda_m\ ,\qquad \text{for }m=1,\ldots,M\\
+  \ArrowBetweenLines
+  && \mu &< \frac{1}{\lambda_\textup{max}}\ .
+  \label{eq:app_lms_u1}
+\end{alignat}
+The argument of the second determinant is a scalar. It leads to
+\begin{alignat}{2}
+  && 0 &< 1-\frac{1}{2}\vect{1}_m^T\vect{\Lambda}_m(\mu^{-1}\vect{I}_m-\vect{\Lambda}_m)^{-1}\vect{1}_m\ ,\qquad \text{for }m=1,\ldots,M\\
+  \ArrowBetweenLines
+  && 1 &> \frac{1}{2}\vect{1}_m^T\vect{\Lambda}_m(\mu^{-1}\vect{I}_m-\vect{\Lambda}_m)^{-1}\vect{1}_m\ ,\qquad \text{for }m=1,\ldots,M\\
+  && &= \frac{1}{2}\tr{\vect{\Lambda}_m(\mu^{-1}\vect{I}_m-\vect{\Lambda}_m)^{-1}}\ ,\qquad \text{for }m=1,\ldots,M\\
+  && &= \frac{1}{2}\sum_{i=1}^m\frac{\lambda_i}{\mu^{-1}-\lambda_i}\ ,\qquad \text{for }m=1,\ldots,M\\
+  && &= \frac{\mu}{2}\sum_{i=1}^m\frac{\lambda_i}{1-\mu\lambda_i} = f_m(\mu)\ ,\qquad \text{for }m=1,\ldots,M\ .
+\end{alignat}
+The first bound on the step-size in \eq{eq:app_lms_u1} ensures that $\lambda_i/(1-\mu\lambda_i)$ is always positive. Thus,
+\bmath
+  f_1(\mu) < f_2(\mu) < \cdots < f_M(\mu)\ ,\qquad\text{for }\mu\in[0,\lambda_\textup{max}^{-1}]\ .
+\emath
+Therefore, if the step-size satisfies
+\bmath
+  f(\mu) = f_M(\mu) < 1\ ,
+\emath
+then all of the functions $f_m(\mu)$ are also smaller than one. Moreover, $f(0) = 0$, and $f(\mu)$ is an increasing function as long as the first bound on the step-size in \eq{eq:app_lms_u1} is satisfied. The latter follows since the derivative of $f(\mu)$ satisfies
+\bmath
+  \frac{df}{d\mu} = \frac{1}{2}\sum_{m=1}^M\frac{\lambda_m}{(1-\mu\lambda_m)^2} > 0\ ,\qquad\text{for }\mu\in[0,\lambda_\textup{max}^{-1}]\ .
+\emath
+These observations lead to the conclusion that $\vect{I} - \vect{D}$ is positive definite, provided that the step-size satisfies the bound
+\bmath
+  \boxed{f(\mu) = \frac{\mu}{2}\sum_{m=1}^M\frac{\lambda_m}{1-\mu\lambda_m} < 1}\ .
+  \label{eq:app_lms_u2}
+\emath
+In matrix notation, we can write this bound as
+\bmath
+  \boxed{f(\mu) = \frac{1}{2}\vect{1}^T\vect{\Lambda}(\mu^{-1}\vect{I}-\vect{\Lambda})^{-1}\vect{1} =  \frac{1}{2}\tr{\vect{\Lambda}(\mu^{-1}\vect{I}-\vect{\Lambda})^{-1}}< 1}
+  \label{eq:app_lms_u2_matrix}
+\emath
+where the last equality follows since $\vect{\Lambda}(\mu^{-1}\vect{I}-\vect{\Lambda})^{-1}$ is diagonal. Moreover, since
+\bmath
+  \lim_{\mu\to \lambda_\textup{max}^{-1}} f(\mu) = \infty > 1\ ,
+\emath
+the first bound in \eq{eq:app_lms_u1} is always satisfied if the second bound in \eq{eq:app_lms_u2} is satisfied. Thus, we have shown that the LMS algorithm converges in the mean-square if and only if the step-size satisfies \eq{eq:app_lms_u2} or, equivalently, \eq{eq:app_lms_u2_matrix}.
+
+
+\subsection{Learning Curve}
+The value of the cost function at time $n$ is given by
+\begin{align}
+  J_1(\vect{w}(n)) &= E[e^2(n)] = E[(v(n)+\vect{u}^T(n)\vect{\Delta}\vect{w}(n))^2]\\
+  &= E[\vect{\Delta}\vect{w}^T(n)\vect{u}(n)\vect{u}^T(n)\vect{\Delta}\vect{w}(n)]+J_\textup{min}
+\end{align}
+where the last equality follows from the fact that $v(n)$ and $\vect{u}(n)$ are uncorrelated. If we also use the law of iterated expectations and that $\vect{u}(n)$ and $\vect{w}(n)$ are uncorrelated, we obtain that 
+\begin{align}
+  J_1(\vect{w}(n)) &= E[\vect{\Delta}\vect{w}^T(n)E[\vect{u}(n)\vect{u}^T(n)|\vect{w}(n)]\vect{\Delta}\vect{w}(n)]+J_\textup{min}\\
+  &= E[\vect{\Delta}\vect{w}^T(n)E[\vect{u}(n)\vect{u}^T(n)]\vect{\Delta}\vect{w}(n)]+J_\textup{min}\\
+  &= E[\vect{\Delta}\vect{w}^T(n)\vect{R}_u\vect{\Delta}\vect{w}(n)]+J_\textup{min}\ .
+\end{align}
+Finally, if we replace the correlation matrix $\vect{R}_u$ of $\vect{u}(n)$ with its eigenvalue decomposition $\vect{R}_u=\vect{X\Lambda X}^T$, we have that 
+\bmath
+  J_1(\vect{w}(n)) = E[\vect{c}^T(n)\vect{\Lambda}\vect{c}(n)]+J_\textup{min}
+\emath
+where we again have defined that $\vect{c}(n)= \vect{X}^T\vect{\Delta}\vect{w}(n)$. Now, for $\vect{S}(0)=\vect{\Lambda}$, we obtain from \eq{eq:app_lms_nth_recur} that
+\bmath
+    \boxed{J_1(\vect{w}(n)) = \vect{c}^T(0)\vect{S}(n)\vect{c}(0)+\mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}+J_\textup{min}}
+    \label{eq:app_lms_learning_curve}
+\emath
+where
+\begin{align}
+  \vect{S}(n) &= \vect{S}(n-1) - 2\mu\vect{\Lambda}\vect{S}(n-1)+\mu^2[\vect{\Lambda}\tr{\vect{S}(n-1)\vect{\Lambda}}+2\vect{\Lambda}\vect{S}(n-1)\vect{\Lambda}]\\
+  &= \diag{\vect{S}(n)\vect{1}} = \diag{\vect{D}^n\vect{\Lambda}\vect{1}}\ .
+\end{align}
+Here, $\diag{\cdot}$ creates a diagonal matrix from a vector.
+
+\section{Steady-State Analysis}
+In the steady-state analysis, we derive expressions for the mean-square deviation (MSD), the excess mean-square error (EMSE), and the misadjustment of the LMS algorithm. These expressions can be derived in two different ways. One way is presented in \cite[pp.~462--465]{Sayed2003}. Here, we give another derivation which we believe is more intuitive.
+
+\subsection{Mean-Square Deviation}
+The MSD is given by the limit
+\bmath
+  \text{MSD:}\qquad  \lim_{n\to\infty} E[\|\vect{\Delta w}(n)\|^2]\ ,
+\emath
+and we denote this limit by $E[\|\vect{\Delta w}(\infty)\|^2]$. We make direct use of the definition in the derivation of the MSD. Again, we define $\vect{c}(n)= \vect{X}^T\vect{\Delta}\vect{w}(n)$. Thus, from \eq{eq:app_lms_nth_recur}, we have that
+\begin{align}
+  E[\|\vect{\Delta w}(\infty)\|^2] &= \lim_{n\to\infty} E[\|\vect{\Delta w}(n)\|^2] = \lim_{n\to\infty} E[\|\vect{c}(n)\|^2]\\
+  &= \lim_{n\to\infty} \left\{\vect{c}^T(0)\vect{S}(n)\vect{c}(0)+\mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}\right\}\\
+  &= \lim_{n\to\infty} \vect{c}^T(0)\vect{S}(n)\vect{c}(0) + \lim_{n\to\infty} \mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}\ .
+\end{align}
+with $\vect{S}(0)=\vect{I}$. If we select the step-size $\mu$ such that the LMS algorithm converges in the mean-square, the first term equals zero. Thus, we have that
+\begin{align}
+  E[\|\vect{\Delta w}(\infty)\|^2] &= \lim_{n\to\infty} \mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}} = \mu^2J_\textup{min}\sum_{i=0}^{\infty}\tr{\vect{S}(i)\vect{\Lambda}}\ .
+\end{align}
+The matrices $\vect{S}(i)$ and $\vect{\Lambda}$ are both diagonal, and we therefore use \eq{eq:app_lms_tr_diag} to obtain
+\begin{align}
+  E[\|\vect{\Delta w}(\infty)\|^2] &= \mu^2J_\textup{min}\sum_{i=0}^{\infty}\vect{1}^T\vect{\Lambda}\vect{S}(i)\vect{1}\\
+  &= \mu^2J_\textup{min}\sum_{i=0}^{\infty}\vect{1}^T\vect{\Lambda}\vect{D}^i\vect{1}\\
+  &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}\sum_{i=0}^{\infty}\left[\vect{D}^i\right]\vect{1}
+\end{align}
+where the second equality follows from \eq{eq:app_lms_S_D_recur} with  $\vect{S}(0)=\vect{I}$ and $\vect{D}$ defined in \eq{eq:app_lms_D}. Since all the eigenvalues of $\vect{D}$ have a magnitude smaller than 1, we have from the geometric series of matrices that \cite[p.~58]{Petersen2008}
+\bmath
+  \sum_{i=0}^{\infty}\vect{D}^i = (\vect{I}-\vect{D})^{-1}\ .
+\emath
+Thus, we obtain that
+\begin{align}
+  E[\|\vect{\Delta w}(\infty)\|^2] &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}(\vect{I}-\vect{D})^{-1}\vect{1}\\
+  &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}(2\mu\vect{\Lambda}-\mu^2(\vect{\Lambda}\vect{1}\vect{1}^T\vect{\Lambda}+2\vect{\Lambda}^2))^{-1}\vect{1}\\
+  &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}[(2\vect{\mu}^{-1}\vect{I}-2\vect{\Lambda}-\vect{\Lambda}\vect{1}\vect{1}^T)\mu^2\vect{\Lambda}]^{-1}\vect{1}\\
+  &= J_\textup{min}\vect{1}^T(2\vect{\mu}^{-1}\vect{I}-2\vect{\Lambda}-\vect{\Lambda}\vect{1}\vect{1}^T)^{-1}\vect{1}\ .
+\end{align}
+Now, by defining
+\bmath
+  \vect{G} = \vect{\mu}^{-1}\vect{I}-\vect{\Lambda}
+\emath
+and using the matrix inversion lemma from \eq{eq:woodbury}, we obtain
+\begin{align}
+  E[\|\vect{\Delta w}(\infty)\|^2] &= J_\textup{min}\vect{1}^T(2\vect{G}-\vect{\Lambda}\vect{1}\vect{1}^T)^{-1}\vect{1}\\
+  &= J_\textup{min}\vect{1}^T\left[\frac{1}{2}\vect{G}^{-1}+\frac{1}{2}\vect{G}^{-1}\vect{\Lambda}\vect{1}\left(1-\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right)^{-1}\vect{1}^T\vect{G}^{-1}\frac{1}{2}\right]\vect{1}\\
+  &= J_\textup{min}\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{1}\left[1+\left(1-\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right)^{-1}\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right]\\
+  &= J_\textup{min}\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{1}\left(1-\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right)^{-1}\ .
+\end{align}
+Finally, from \eq{eq:app_lms_u2_matrix}, we have that
+\bmath
+  f(\mu) = \frac{1}{2}\vect{1}^T\vect{\Lambda}\vect{G}^{-1}\vect{1} = \frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}
+\emath
+which leads to
+\bmath
+  \boxed{ E[\|\vect{\Delta w}(\infty)\|^2] = \frac{J_\textup{min}}{1-f(\mu)}\frac{\mu}{2}\sum_{m=1}^M\frac{1}{1-\mu\lambda_m}}\ .
+\emath
+
+\subsection{Excess Mean-Square Error}
+The derivation of the EMSE is done in the same way as the MSE was derived. The EMSE is given by the limit
+\bmath
+  \text{EMSE:}\qquad  \lim_{n\to\infty} J_1(\vect{w}(n))-J_\textup{min}\ ,
+\emath
+and we denote it by $J_\textup{ex}$. Inserting the expression for the learning curve from \eq{eq:app_lms_learning_curve} in this limit yields
+\begin{align}
+  J_\textup{ex} &= \lim_{n\to\infty} \left\{\vect{c}^T(0)\vect{S}(n)\vect{c}(0)+\mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}\right\}\\
+  &= \lim_{n\to\infty} \vect{c}^T(0)\vect{S}(n)\vect{c}(0)+\lim_{n\to\infty}\mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}}
+\end{align}
+where $\vect{S}(0)=\vect{\Lambda}$ and $\vect{c}(n)= \vect{X}^T\vect{\Delta}\vect{w}(n)$. If we select the step-size $\mu$ such that the LMS algorithm converges in the mean-square, the first term equals zero. Thus, we have that
+\begin{align}
+  J_\textup{ex} &= \lim_{n\to\infty} \mu^2J_\textup{min}\sum_{i=0}^{n-1}\tr{\vect{S}(i)\vect{\Lambda}} = \mu^2J_\textup{min}\sum_{i=0}^{\infty}\tr{\vect{S}(i)\vect{\Lambda}}\ .
+\end{align}
+Note that the expression for the EMSE is the same as for the MSD, except for the value of $\vect{S}(0)$. The matrices $\vect{S}(i)$ and $\vect{\Lambda}$ are both diagonal, and we therefore use \eq{eq:app_lms_tr_diag} to obtain
+\begin{align}
+  J_\textup{ex} &= \mu^2J_\textup{min}\sum_{i=0}^{\infty}\vect{1}^T\vect{\Lambda}\vect{S}(i)\vect{1}\\
+  &= \mu^2J_\textup{min}\sum_{i=0}^{\infty}\vect{1}^T\vect{\Lambda}\vect{D}^i\vect{\Lambda}\vect{1}\\
+  &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}\sum_{i=0}^{\infty}\left[\vect{D}^i\right]\vect{\Lambda}\vect{1}
+\end{align}
+where the second equality follows from \eq{eq:app_lms_S_D_recur} with $\vect{S}(0)=\vect{\Lambda}$ and $\vect{D}$ defined in \eq{eq:app_lms_D}. Since all the eigenvalues of $\vect{D}$ have a magnitude smaller than 1, we have from the geometric series of matrices that \cite[p.~58]{Petersen2008}
+\bmath
+  \sum_{i=0}^{\infty}\vect{D}^i = (\vect{I}-\vect{D})^{-1}\ .
+\emath
+Thus, we obtain that
+\begin{align}
+  J_\textup{ex} &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}(\vect{I}-\vect{D})^{-1}\vect{\Lambda}\vect{1}\\
+  &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}(2\mu\vect{\Lambda}-\mu^2(\vect{\Lambda}\vect{1}\vect{1}^T\vect{\Lambda}+2\vect{\Lambda}^2))^{-1}\vect{\Lambda}\vect{1}\\
+  &= \mu^2J_\textup{min}\vect{1}^T\vect{\Lambda}[(2\vect{\mu}^{-1}\vect{I}-2\vect{\Lambda}-\vect{\Lambda}\vect{1}\vect{1}^T)\mu^2\vect{\Lambda}]^{-1}\vect{\Lambda}\vect{1}\\
+  &= J_\textup{min}\vect{1}^T(2\vect{\mu}^{-1}\vect{I}-2\vect{\Lambda}-\vect{\Lambda}\vect{1}\vect{1}^T)^{-1}\vect{\Lambda}\vect{1}\ .
+\end{align}
+Now, by defining
+\bmath
+  \vect{G} = \vect{\mu}^{-1}\vect{I}-\vect{\Lambda}
+\emath
+and using the matrix inversion lemma from \eq{eq:woodbury}, we obtain
+\begin{align}
+  J_\textup{ex} &= J_\textup{min}\vect{1}^T(2\vect{G}-\vect{\Lambda}\vect{1}\vect{1}^T)^{-1}\vect{\Lambda}\vect{1}\\
+  &= J_\textup{min}\vect{1}^T\left[\frac{1}{2}\vect{G}^{-1}+\frac{1}{2}\vect{G}^{-1}\vect{\Lambda}\vect{1}\left(1-\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right)^{-1}\vect{1}^T\vect{G}^{-1}\frac{1}{2}\right]\vect{\Lambda}\vect{1}\\
+  &= J_\textup{min}\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\left[1+\left(1-\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right)^{-1}\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right]\\
+  &= J_\textup{min}\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\left(1-\frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}\right)^{-1}\ .
+\end{align}
+Finally, from \eq{eq:app_lms_u2_matrix}, we have that
+\bmath
+  f(\mu) = \frac{1}{2}\vect{1}^T\vect{\Lambda}\vect{G}^{-1}\vect{1} = \frac{1}{2}\vect{1}^T\vect{G}^{-1}\vect{\Lambda}\vect{1}
+\emath
+which leads to
+\bmath
+  \boxed{ J_\textup{ex} = J_\textup{min}\frac{f(\mu)}{1-f(\mu)}}\ .
+\emath
+
+\subsection{Misadjustment}
+The expression for the misadjustment is
+\bmath
+  \boxed{\mathcal{M} = \frac{J_\textup{ex}}{J_\textup{min}} = \frac{f(\mu)}{1-f(\mu)}}\ .
+\emath

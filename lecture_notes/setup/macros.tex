@@ -1,0 +1,71 @@
+%various names
+\def\TikZ{Ti{\em k}Z\@}
+\def\PGF{{\scriptsize PGF}\@}
+\def\PGFPLOTS{{\scriptsize PGFPLOTS}\@}
+\def\GNUPLOT{{\scriptsize GNUPLOT}\@}
+%shorter math commands
+\newcommand{\bmath}{\begin{equation}}
+\newcommand{\emath}{\end{equation}}
+\newcommand{\bmathnt}{\begin{equation*}}%no tags
+\newcommand{\emathnt}{\end{equation*}}%no tags
+\newcommand{\bbmtx}{\begin{bmatrix}}
+\newcommand{\ebmtx}{\end{bmatrix}}
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\eqpage}[1]{Eq.~\ref{#1} page~\pageref{#1}}
+\newcommand{\eq}[1]{Eq.~\eqref{#1}}
+% \argmax and \argmin math operator (http://en.wikipedia.org/wiki/Arg_max)
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+%framed aligned equations
+\newlength\dlf
+\newcommand\alignedbox[2]{
+  % #1 = before alignment
+  % #2 = after alignment
+  &
+  \begingroup
+  \settowidth\dlf{$\displaystyle #1$}
+  \addtolength\dlf{\fboxsep+\fboxrule}
+  \hspace{-\dlf}
+  \boxed{#1 #2}
+  \endgroup
+}
+\newcommand{\tr}[1]{\textup{tr}(#1)} % trace of a matrix
+\newcommand{\rank}[1]{\textup{rank}(#1)} % rank of a matrix
+\newcommand{\diag}[1]{\textup{diag}(#1)} % diagonal matrix
+
+
+
+%%%tikz
+\newcommand{\inputTikZ}[1]{%
+  \tikzsetnextfilename{#1}
+  \input{#1.tikz}%
+}
+
+%styles for block diagrams
+\tikzstyle{combnode} = [draw,fill=gray!20,circle]
+\tikzstyle{prodnode} = [draw,fill=gray!20,isosceles triangle]
+\tikzstyle{dotnode} = [circle,inner sep=0pt,minimum size=3pt,fill=black]
+\tikzstyle{blocknode} = [draw,fill=gray!20,minimum height=1.5cm,minimum width=3cm,text width=2.5cm,text centered]
+%\newcommand{\prodnode}[2]{%
+%  \node (#1) [draw,fill=gray!20,isosceles triangle] {#2};
+%}
+%\newcommand{\dotnode}[1]{%
+%  \node (#1) [circle,inner sep=0pt,minimum size=3pt,fill=black] {};
+%}
+%\newcommand{\blocknode}[2]{%
+%  \node (#1) [draw,fill=gray!20,minimum height=1.5cm,text width=3cm,text centered] {#2};
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% An example environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremheaderfont{\normalfont\bfseries}
+\theorembodyfont{\normalfont}
+\theoremstyle{break}
+\def\theoremframecommand{{\color{examplecolor}\vrule width 5pt \hspace{5pt}}}
+\newshadedtheorem{exa}{Example}[chapter]
+\newenvironment{example}[1]{%
+		\begin{exa}[#1]
+}{%
+		\end{exa}
+}

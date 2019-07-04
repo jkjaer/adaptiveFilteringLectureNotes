@@ -1,0 +1,30 @@
+\input{setup/preamble.tex}
+\input{setup/macros.tex}
+
+\title{Lecture Notes in Adaptive Filters\\{\large Third Edition}}
+\author{\href{http://kom.aau.dk/~jkn}{Jesper Kjær Nielsen}\\\url{jkn@create.aau.dk}\\Aalborg University \and \href{http://kom.aau.dk/~shj}{Søren Holdt Jensen}\\\url{shj@es.aau.dk}\\Aalborg University}
+\date{Last revised: \today}
+\begin{document}
+  \pagestyle{empty} %disable headers and footers
+  \pagenumbering{roman}
+  \maketitle
+  \input{setup/colophon}
+  \cleardoublepage
+  \phantomsection
+  \pdfbookmark[0]{Contents}{label:contents}
+  \pagestyle{fancy} %enable headers and footers again
+  \tableofcontents
+  \listoftodos
+  \cleardoublepage
+  \input{lectures/preface.tex}
+  \cleardoublepage
+  \pagenumbering{arabic}
+  \input{lectures/intro_WHE_NE.tex}
+  \input{lectures/SD_LMS.tex}
+  \input{lectures/NLMS_APA.tex}
+  \input{lectures/RLS.tex}
+  \bibliography{IEEEabrv,bib/mybib}
+  \appendix
+  \input{lectures/summary.tex}
+  \input{lectures/app_lms_analysis.tex}
+\end{document}

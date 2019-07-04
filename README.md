@@ -8,3 +8,5 @@ The present lecture notes were written for the annual course on adaptive filters
 Each of the lectures contains an amount of material suited for a lecture lasting for approximately 90 minutes. The appendices contain a summary and some supplementary material.
 
 These lecture notes are always work in progress. Therefore, if you have found an error, have a suggestion for a better statement and/or explanation, or just want to give us some feedback, then do not hesitate to contact us.
+
+[![DOI](https://zenodo.org/badge/195197987.svg)](https://zenodo.org/badge/latestdoi/195197987)
